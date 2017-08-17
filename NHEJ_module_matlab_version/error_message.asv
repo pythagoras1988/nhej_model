@@ -1,0 +1,6 @@
+function error_message(state) 
+    for k = 1:length(state)     
+        synapse_ID_dat(k) = state  
+
+
+end

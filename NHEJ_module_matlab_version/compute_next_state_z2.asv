@@ -1,0 +1,45 @@
+function out_state = compute_next_state_z2(stateObj,rate_constant_z2,dt) 
+    r1 = rand(); 
+    z2 = stateObj('z2'); 
+    ind = find(z2==1);
+    switch ind
+        case 1 % Initial synapse complex
+            if r1<rate2prob(rate_constant_z2(1),dt)
+                stateObj('z2') = [0,1,0];
+                return;
+            end
+        case 2 % Repairing dirty end in synapse
+            if r1 < rate2prob(rate_constant_z2(2),dt)
+                stateObj('z2') = [0,1,0]; 
+                return;
+            elseif r1 >= rate2prob(rate_constant_z2(2),dt) && ... 
+                    r1 < 2*rate2prob(rate_constant_z2(2),dt)
+                stateObj('z2') = [0,0,1]; 
+                return;
+            elseif r1 >= 2*rate2prob(rate_constant_z2(2),dt) && ... 
+                    r1 < 2*rate2prob(rate_constant_z2(2),dt)+rate2prob(rate_constant_z2(4),dt)
+                stateObj('res') = [1]; % Go to REsidual
+                stateObj('z2') = [0,0,0];
+                stateObj('stateIndex') = 5;
+                return;
+            end
+        case 3
+            if r1 < rate2prob(rate_constant_z2(3),dt)
+                stateObj('z2') = [0,0,0,1]; 
+                return;
+            elseif r1 >= rate2prob(rate_constant_z2(3),dt) && ... 
+                    r1 < rate2prob(rate_constant_z2(3),dt) + rate2prob(rate_constant_z2(4),dt)
+                stateObj('y') = [0,1,0,0,0]; % go to y state
+                stateObj('z2') = [0,0,0,0];
+                stateObj('stateIndex') = 2;
+                return;
+            elseif r1 >= rate2prob(rate_constant_z2(3),dt) + rate2prob(rate_constant_z2(4),dt) && ... 
+                    r1 < rate2prob(rate_constant_z2(3),dt) + 2*rate2prob(rate_constant_z2(4),dt)
+                stateObj('res') = [1]; % go to residual
+                stateObj('z2') = [0,0,0,0]; 
+                stateObj('stateIndex') = 5;
+                return;
+            end
+    end
+    out_state = stateObj; 
+end

@@ -1,0 +1,11 @@
+function out_state = compute_next_state_z1(z1,rate_constant_z1,dt) 
+    r1 = rand(); 
+    ind = find(z1==1);
+    switch ind
+        case 1 % Raw end
+            if r1<rate2prob(rate_constant_z1(1),dt)
+                out_state = [0,1];
+                return;
+            end
+    end
+end

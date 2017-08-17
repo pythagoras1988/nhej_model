@@ -1,0 +1,24 @@
+function out_state = compute_next_state_x(x,rate_constant_x,dt) 
+    r1 = rand(); 
+    ind = find(x==1);
+    switch ind
+        case 1 % Raw end
+            if r1<rate2prob(rate_constant_x(1),dt)
+                x = [0,1,0,0,0];
+                return;
+            end
+        case 2 % Opened end
+            if r1 < rate2prob(rate_constant_x(2),dt)
+                x = [0,0,1,0,0];
+                return;
+            end
+        case 3 % ku 70/80 attached
+            if r1 < rate2prob(rate_constant_x(3),dt)
+                x = [0,1,0,0,0]; 
+                return; 
+            elseif r1 >= rate2prob(rate_constant_x(3),dt) && r1 <= rate2prob(sum(rate_constant_x(3)),dt)
+                x = [0,0,0,1,0];
+                return;
+            end
+    end
+end
