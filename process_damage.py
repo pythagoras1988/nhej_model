@@ -3,7 +3,8 @@
 import numpy as np
 import os.path
 
-class processDamage:
+# This class will process the DNA damage from the raw output damage.mat file
+class ProcessDamage:
     eThresh = 16.5 # in eV
     distThresh = 3.2 # in angstrom
 
@@ -13,17 +14,21 @@ class processDamage:
         self.dataLen = 0
 
     def readFile(self):
-        if os.pathisfile(self.fname_read):
+        try:
+            os.pathisfile(self.fname_read):
             self.data = np.loadtxt(self.fname_read)
             self.dataLen = len(self.data)
-        else:
+        except:
             raise Exception('Cannot load damageMat files!!')
 
+    # Get total energy deposited in 1 event
     def get_energy_deposit(self):
 
+    # Get final damage data after processing direct and indirect damage
     def get_final_damage(self):
         return self.data
 
+    # main method to determine the final damage to the DNA
     def get_total_damage(self):
         # sort the data in increasing genomic index
         self.data = self.__insertionSort(self.data)
@@ -33,12 +38,16 @@ class processDamage:
 
         # remove damage which happens more than distance threshold and less than energy threshold for direct damage
         tmp  = (self.data[:,7]>disThresh * self.data[:,6]==0 * self.data[:,8]<eThresh)
-        tmp1 = tmp*np.arange(self.dataLen)
+        tmp1 = tmp * np.arange(self.dataLen)
         tmp1 = tmp1[tmp.astype(bool)]
         self.data = np.delete(self.data,tmp1,axis=0)
 
-    def classify_damage(self):
 
+    def classify_damage(self):
+        
+        return (indirectBreak,directBreak,SSB,DSB)
+
+    # Same as consolidate damage in matlab version
     def __sum_direct_damage(self,data,length):
         if data.size ==0:
             return data
