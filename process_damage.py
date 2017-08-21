@@ -2,9 +2,10 @@
 # output a matrix indicating information of strands that are damaged
 import numpy as np
 import os.path
+from classify_damage import ClassifyDamage
 
 # This class will process the DNA damage from the raw output damage.mat file
-class ProcessDamage:
+class ProcessDamage(ClassifyDamage):
     eThresh = 16.5 # in eV
     distThresh = 3.2 # in angstrom
 
@@ -28,7 +29,7 @@ class ProcessDamage:
     def get_final_damage(self):
         return self.data
 
-    # main method to determine the final damage to the DNA
+    # main method to determine the final damage to the DNA; use as in input to the classification of damage step
     def get_total_damage(self):
         # sort the data in increasing genomic index
         self.data = self.__insertionSort(self.data)
@@ -41,11 +42,6 @@ class ProcessDamage:
         tmp1 = tmp * np.arange(self.dataLen)
         tmp1 = tmp1[tmp.astype(bool)]
         self.data = np.delete(self.data,tmp1,axis=0)
-
-
-    def classify_damage(self):
-        
-        return (indirectBreak,directBreak,SSB,DSB)
 
     # Same as consolidate damage in matlab version
     def __sum_direct_damage(self,data,length):
@@ -77,5 +73,3 @@ class ProcessDamage:
                 count = count - 1
             data[count,:] = tmp
 
-    @staticmethod
-    def DBSCAN(data):
