@@ -1,11 +1,11 @@
 # Process the direct and indirect damage from damageMat files
 # output a matrix indicating information of strands that are damaged
+
 import numpy as np
 import os.path
-from classify_damage import ClassifyDamage
 
 # This class will process the DNA damage from the raw output damage.mat file
-class ProcessDamage(ClassifyDamage):
+class ProcessDamage:
     eThresh = 16.5 # in eV
     distThresh = 3.2 # in angstrom
 
@@ -13,8 +13,15 @@ class ProcessDamage(ClassifyDamage):
         self.fname_read = fname
         self.data = np.array([])
         self.dataLen = 0
+        self.FLAG_NULLDATA = False
 
-    def readFile(self):
+        self.__readFile(self.fname_read) # Read the data files into self.data
+        if self.data.size not 0: 
+            self.__get_total_damage()
+        else: 
+            self.FLAG_NULLDATA = True
+
+    def __readFile(self):
         try:
             os.pathisfile(self.fname_read):
             self.data = np.loadtxt(self.fname_read)
@@ -24,13 +31,17 @@ class ProcessDamage(ClassifyDamage):
 
     # Get total energy deposited in 1 event
     def get_energy_deposit(self):
+        pass
 
     # Get final damage data after processing direct and indirect damage
     def get_final_damage(self):
         return self.data
 
+    def get_FLAG_NULLDATA(self): 
+        return self.FLAG_NULLDATA 
+
     # main method to determine the final damage to the DNA; use as in input to the classification of damage step
-    def get_total_damage(self):
+    def __get_total_damage(self):
         # sort the data in increasing genomic index
         self.data = self.__insertionSort(self.data)
 
@@ -42,6 +53,10 @@ class ProcessDamage(ClassifyDamage):
         tmp1 = tmp * np.arange(self.dataLen)
         tmp1 = tmp1[tmp.astype(bool)]
         self.data = np.delete(self.data,tmp1,axis=0)
+
+        # set NULLDATA FLAG if data is empty after post processing
+        if self.data.size is 0: 
+            self.FLAG_NULLDATA = True
 
     # Same as consolidate damage in matlab version
     def __sum_direct_damage(self,data,length):
