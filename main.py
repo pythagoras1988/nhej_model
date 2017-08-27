@@ -41,7 +41,9 @@ if __name__=='__main__':
 	#**********************************************************************
 
 	procDamage = ProcessDamage(fname)
-	if not procDamage.get_FLAG_NULLDATA: 
+	if not procDamage.get_FLAG_NULLDATA(): 
+		#if debug: 
+		#	np.savetxt('processed_damage_data.txt',procDamage.get_final_damage())	
 		classifyDamage = ClassifyDamage(procDamage.get_final_damage())
 
 

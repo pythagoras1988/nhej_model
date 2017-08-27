@@ -3,11 +3,11 @@ from sklearn.cluster import DBSCAN
 
 # Classify the damaged strand data into SSB, DSB and direct and indirect effect
 class ClassifyDamage: 
-	def __init__(self,data): 
-		self.eps = 10 
+    def __init__(self,data): 
+	self.eps = 10 
     	self.min_samples = 2
     	self.data = data 
-    	assert self.data.size == 0
+    	assert self.data.size != 0
 
     	#implement clustering via DBSCAN
     	self.label = self.__startDBSCAN() 
@@ -31,5 +31,12 @@ class ClassifyDamage:
     	tmp = (data[:,6]==1 * data[:,1]==1) 
     	return sum(tmp)
 
-    def getDSB_data(self): 
-    	pass
+    #**************************************************************************
+    # This method extracts the state of the DSB including: 
+    # 1) Complexity of breaks
+    # 2) Position of breaks
+    # 3) 
+    #**************************************************************************
+    def getDSB_data(self):
+    	pass 
+    	

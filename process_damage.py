@@ -15,15 +15,14 @@ class ProcessDamage:
         self.dataLen = 0
         self.FLAG_NULLDATA = False
 
-        self.__readFile(self.fname_read) # Read the data files into self.data
-        if self.data.size not 0: 
+        self.__readFile() # Read the data files into self.data
+        if self.data.size != 0 : 
             self.__get_total_damage()
         else: 
             self.FLAG_NULLDATA = True
 
     def __readFile(self):
         try:
-            os.pathisfile(self.fname_read):
             self.data = np.loadtxt(self.fname_read)
             self.dataLen = len(self.data)
         except:
@@ -42,17 +41,30 @@ class ProcessDamage:
 
     # main method to determine the final damage to the DNA; use as in input to the classification of damage step
     def __get_total_damage(self):
-        # sort the data in increasing genomic index
-        self.data = self.__insertionSort(self.data)
 
-        # Consolidate damage from direct damage especially for full edep data files
+        # step 1: remove damage which happens more than distance threshold for direct effect. 
+        #  This damage will not be considered at all! 
+        tmp  = (self.data[:,7]>self.distThresh) * (self.data[:,6]==0) 
+        tmp1 = (1-tmp).astype(bool)
+        self.data = self.data[tmp1,:]
+        self.dataLen = len(self.data[:,1])
+
+        # step 2: Consolidate damage from direct damage especially for full edep data files. 
+        # This requires the direct damage data to be together, before sorting
+        print self.data.shape
         self.data = self.__sum_direct_damage(self.data,self.dataLen)
+        print self.data.shape
 
-        # remove damage which happens more than distance threshold and less than energy threshold for direct damage
-        tmp  = (self.data[:,7]>disThresh * self.data[:,6]==0 * self.data[:,8]<eThresh)
-        tmp1 = tmp * np.arange(self.dataLen)
-        tmp1 = tmp1[tmp.astype(bool)]
-        self.data = np.delete(self.data,tmp1,axis=0)
+        # step 3: Remove direct damage withe eDep less than energy threshold
+        tmp  = (self.data[:,8]<self.eThresh) * (self.data[:,6]==0)
+        tmp1 = (1-tmp).astype(bool)
+        self.data = self.data[tmp1,:]
+        self.dataLen = len(self.data[:,0])
+
+        # step 4: sort the data in increasing genomic index
+        self.data = self.__insertionSort(self.data)
+        np.savetxt('processed_damage_data.txt',self.data)   
+
 
         # set NULLDATA FLAG if data is empty after post processing
         if self.data.size is 0: 
@@ -60,31 +72,30 @@ class ProcessDamage:
 
     # Same as consolidate damage in matlab version
     def __sum_direct_damage(self,data,length):
-        if data.size ==0:
+        if data.size == 0:
             return data
         else:
             tmp = data[1,:]
-            tmpMat = np.zeros(length,1)
-            tmpMat.astype(bool)
+            tmpMat = np.zeros(length)
+            tmpMat = tmpMat.astype(bool)
             tmpInd = 0
-
             for k in xrange(1,length):
-                if data[k,6]==0 and (data[k,0:2]==tmp[1,0:2]).all()
+                if data[k,6]==0 and all(data[k,0:3]==tmp[0:3]):
                     data[tmpInd,8] = data[tmpInd,8] + data[k,8]
                     tmpMat[k] = True
+                    print('Combining direct damage data...')
                 else:
                     tmp = data[k,:]
                     tmpInd = k
-            tmp1 = tmpMat * np.arange(length)
-            tmp1 = tmp1[tmpMat]
-            return np.delete(data,tmp1,axis=0)
+            tmp1 = (1-tmpMat).astype(bool)
+            return data[tmp1,:]
 
     def __insertionSort(self,data):
         for k in xrange(1,self.dataLen):
-            tmp = data[k,:]
-            count = k
-            while count>0 and tmp[0]<data[count-1,1]:
+            temp = data[k,:].copy()
+            count = k   
+            while count>0 and temp[0]<data[count-1,0]:
                 data[count,:] = data[count-1,:]
-                count = count - 1
-            data[count,:] = tmp
-
+                count -= 1             
+            data[count,:] = temp
+        return data
