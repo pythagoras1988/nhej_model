@@ -16,9 +16,9 @@ class ProcessDamage:
         self.FLAG_NULLDATA = False
 
         self.__readFile() # Read the data files into self.data
-        if self.data.size != 0 : 
+        if self.data.size != 0 :
             self.__get_total_damage()
-        else: 
+        else:
             self.FLAG_NULLDATA = True
 
     def __readFile(self):
@@ -36,20 +36,24 @@ class ProcessDamage:
     def get_final_damage(self):
         return self.data
 
-    def get_FLAG_NULLDATA(self): 
-        return self.FLAG_NULLDATA 
+    def get_FLAG_NULLDATA(self):
+        return self.FLAG_NULLDATA
 
     # main method to determine the final damage to the DNA; use as in input to the classification of damage step
     def __get_total_damage(self):
 
-        # step 1: remove damage which happens more than distance threshold for direct effect. 
-        #  This damage will not be considered at all! 
-        tmp  = (self.data[:,7]>self.distThresh) * (self.data[:,6]==0) 
+        # step 0: Remove Base dmage
+        tmp = (self.data[:,1]==1)
+        self.data = self.data[tmp,:]
+
+        # step 1: remove damage which happens more than distance threshold for direct effect.
+        #  This damage will not be considered at all!
+        tmp  = (self.data[:,7]>self.distThresh) * (self.data[:,6]==0)
         tmp1 = (1-tmp).astype(bool)
         self.data = self.data[tmp1,:]
         self.dataLen = len(self.data[:,1])
 
-        # step 2: Consolidate damage from direct damage especially for full edep data files. 
+        # step 2: Consolidate damage from direct damage especially for full edep data files.
         # This requires the direct damage data to be together, before sorting
         print self.data.shape
         self.data = self.__sum_direct_damage(self.data,self.dataLen)
@@ -63,11 +67,10 @@ class ProcessDamage:
 
         # step 4: sort the data in increasing genomic index
         self.data = self.__insertionSort(self.data)
-        np.savetxt('processed_damage_data.txt',self.data)   
-
+        np.savetxt('processed_damage_data.txt',self.data)
 
         # set NULLDATA FLAG if data is empty after post processing
-        if self.data.size is 0: 
+        if self.data.size is 0:
             self.FLAG_NULLDATA = True
 
     # Same as consolidate damage in matlab version
@@ -93,9 +96,9 @@ class ProcessDamage:
     def __insertionSort(self,data):
         for k in xrange(1,self.dataLen):
             temp = data[k,:].copy()
-            count = k   
+            count = k
             while count>0 and temp[0]<data[count-1,0]:
                 data[count,:] = data[count-1,:]
-                count -= 1             
+                count -= 1
             data[count,:] = temp
         return data
