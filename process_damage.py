@@ -28,10 +28,6 @@ class ProcessDamage:
         except:
             raise Exception('Cannot load damageMat files!!')
 
-    # Get total energy deposited in 1 event
-    def get_energy_deposit(self):
-        pass
-
     # Get final damage data after processing direct and indirect damage
     def get_final_damage(self):
         return self.data

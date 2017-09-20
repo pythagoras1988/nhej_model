@@ -36,11 +36,11 @@ class ClassifyDamage:
     	return sum(tmp)
 
     #**************************************************************************
-    # This method extracts the state of the DSB including:
-    # 1) Complexity of breaks
-    # 2) Position of breaks
-    #
-    # Col 1,2,3: X,Y,Z position
+    # This method extracts the state of the DSB including:                    #
+    # 1) Complexity of breaks                                                 #
+    # 2) Position of breaks                                                   #  
+    #                                                                         #  
+    # Col 1,2,3: X,Y,Z Position
     # Col 4 : Simple or complex break (1 is complex)
     # Col 5 : Chromosome Index
     #**************************************************************************
