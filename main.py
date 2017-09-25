@@ -35,9 +35,9 @@ if __name__=='__main__':
 		path = '/damageData/'
 		dirs = os.listdir(path)
 		numDamageData = len(dirs) - 1 #1 of the file is edepMaster
-		try: 
+		try:
 			eDep = np.loadtxt(path+'edepMaster.txt')
-		except: 
+		except:
 			raise IOError('No energy deposition files!!')
 
 	#**********************************************************************
@@ -49,15 +49,15 @@ if __name__=='__main__':
 	#					   effect condition)		  indirect effect)
 	#**********************************************************************
 
-	for k in range(numDamageData): 
-		totalEnergy += energyData[k]
+	for k in range(numDamageData):
+		totalEnergy += eDep[k]
 		fname = dirs(k)
 		procDamage = ProcessDamage(fname)
 
 		if not procDamage.get_FLAG_NULLDATA():
 			#if debug:
 			#	np.savetxt('processed_damage_data.txt',procDamage.get_final_damage())
-			classifyDamage = ClassifyDamage(procDamage.get_final_damage())
+			classifyDamage = ClassifyDamage(procDamage.get_final_damage(),procDamage.get_base_damage())
 			if debug:
 				print classifyDamage.getDBSCAN_label()
 				print classifyDamage.getDSB()
@@ -71,10 +71,3 @@ if __name__=='__main__':
 	##**********************************************************************
 	# Run NHEJ repair code for DSB master data
 	#***********************************************************************
-
-
-
-
-
-
-			

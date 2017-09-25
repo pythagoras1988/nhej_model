@@ -32,6 +32,10 @@ class ProcessDamage:
     def get_final_damage(self):
         return self.data
 
+    def get_base_damage(self):
+        tmp = (self.data[:,1]==0)
+        return self.data[tmp,:]
+
     def get_FLAG_NULLDATA(self):
         return self.FLAG_NULLDATA
 
