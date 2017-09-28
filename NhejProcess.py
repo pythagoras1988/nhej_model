@@ -24,13 +24,16 @@ class NhejPtr:
 	def _initializeDsbStates(self):
 		for k in range(data[:,0]):
 			if dsbMasterData[k,3] == 1:
-				stateList.append(NhejState.ComplexUnjoinedDsbState())
+				self.stateList.append(NhejState.ComplexUnjoinedDsbState())
 			else:
-				stateList.append(NhejState.SimpleDsbState())
+				self.stateList.append(NhejState.SimpleDsbState())
 
 	def oneIteration(self):
 		dt = self._timeStepping()
-		
+		self.currTime += dt
+		print("Current time is %f mins",%(self.currTime/60))
+		for k in range(numDSB):
+			self.stateList[k].stateStepping()
 
 	def _timeStepping(self):
 		dt_List = [self.stateList[k].getDeltaTime() for k in self.numDSB]

@@ -34,7 +34,16 @@ class SimpleDsbState:
             raise ValueError("Invalid values for state")
 
     def stateStepping(self,dt):
-        pass
+        stateVector = self.getStateAsVector()
+        ind = stateVector.index(1)
+        if ind == 0 and np.random.uniform()<dt*self.rateConstant[0]:
+            self.stateChange1
+        elif ind == 1 and np.random.uniform()<dt*self.rateConstant[1]:
+            self.stateChange2
+        elif ind == 2 and np.random.uniform()<dt*self.rateConstant[2]:
+            self.stateChange3
+        else:
+            pass
 
     def getDeltaTime(self):
         self.stateCheck()
@@ -69,6 +78,16 @@ class ComplexUnjoinedDsbState:
         stateVector = self.getStateAsVector()
         if any(stateVector>1) or sum(stateVector)>1:
             raise ValueError("Invalid values for state")
+
+    def stateStepping(self,dt):
+        stateVector = self.getStateAsVector()
+        ind = stateVector.index(1)
+        if ind == 0 and np.random.uniform()<dt*self.rateConstant[0]:
+            self.stateChange1
+        elif ind == 1 and np.random.uniform()<dt*self.rateConstant[1]:
+            self.stateChange2
+        else:
+            pass
 
     def getDeltaTime(self):
         self.stateCheck()
@@ -108,6 +127,18 @@ class ComplexJoinedDsbState:
         stateVector = self.getStateAsVector()
         if any(stateVector>1) or sum(stateVector)>1:
             raise ValueError("Invalid values for state")
+
+    def stateStepping(self,dt):
+        stateVector = self.getStateAsVector()
+        ind = stateVector.index(1)
+        if ind == 0 and np.random.uniform()<dt*self.rateConstant[0]:
+            self.stateChange1
+        elif ind == 1 and np.random.uniform()<dt*self.rateConstant[1]:
+            self.stateChange2
+        elif ind == 2 and np.random.uniform()<dt*self.rateConstant[2]:
+            self.stateChange3
+        else:
+            pass
 
     def getDeltaTime(self):
         self.stateCheck()
