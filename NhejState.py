@@ -8,6 +8,8 @@ class SimpleDsbState:
         self.ku_Li     = 0
         self.synapse   = 0
         self.null      = 0
+        self.ID.       = -1
+        self.position  = np.array([0,0,0])
         self._initialize()
 
     def _initalize(self):
@@ -52,12 +54,17 @@ class SimpleDsbState:
         r = np.random.uniform()
         return 1/self.rateConstant[ind] * np.log(1/r)
 
+    def Set_ID(self,ID): 
+        self.ID = ID
+
 class ComplexUnjoinedDsbState:
     def __init__(self):
         self.rateConstant = [1,1]
         self.complexDSB = 0
         self.ku        = 0
         self.PKcs      = 0
+        self.ID.       = -1
+        self.position  = np.array([0,0,0])
         self._initialize()
 
     def _initialize(self):
@@ -96,6 +103,9 @@ class ComplexUnjoinedDsbState:
         r = np.random.uniform()
         return 1/self.rateConstant[ind] * np.log(1/r)
 
+    def Set_ID(self,ID): 
+        self.ID = ID
+
 class ComplexJoinedDsbState:
     def __init__(self):
         self.rateConstant = [1,1,1]
@@ -103,6 +113,8 @@ class ComplexJoinedDsbState:
         self.repairing = 0
         self.Li_XR = 0
         self.null = 0
+        self.ID.  = -1
+        self.position  = np.array([0,0,0])
         self._initialize()
 
     def _initialize(self):
@@ -146,3 +158,6 @@ class ComplexJoinedDsbState:
         ind = stateVector.index(1)
         r = np.random.uniform()
         return 1/self.rateConstant[ind] * np.log(1/r)
+
+    def Set_ID(self,ID): 
+        self.ID = ID

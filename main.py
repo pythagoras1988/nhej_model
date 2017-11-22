@@ -31,7 +31,7 @@ if __name__=='__main__':
 	else:
 		## full cell nucleus irradiation; store all damageMat in 1 folder
 		totalEnergy = 0
-		dsbMasterData = []
+		dsbMasterData = np.array([])
 		path = '/damageData/'
 		dirs = os.listdir(path)
 		numDamageData = len(dirs) - 1 #1 of the file is edepMaster
@@ -65,7 +65,8 @@ if __name__=='__main__':
 				print classifyDamage.getDirectBreak()
 				print classifyDamage.getIndirectBreak()
 			if classifyDamage.getDSB()>=0:
-				dsbMasterData.append(classifyDamage.getDSB_data(np.rint(23*np.random.uniform())))
+				#dsbMasterData.append(classifyDamage.getDSB_data(np.rint(23*np.random.uniform())))
+				dsbMasterData = np.append(dsbMasterData,classifyDamage.getDSB_data(np.rint(23*np.random.uniform())),axis=0)
 
 
 	##**********************************************************************
