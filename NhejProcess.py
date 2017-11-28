@@ -88,6 +88,7 @@ class NhejPtr:
 				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D2,dt)
 			else:
 				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D1,dt)
+		self._CheckHitBoundary()
 		self._Process_Rejoin()
 		self._Process_Repair()
 
@@ -196,6 +197,13 @@ class NhejPtr:
 			return 2 
 		else: 
 			raise Exception('Unknown States...')
+
+	##-------------------------------------------------------------------
+	# Method to handle exception when position stepping reaches the  
+	# boundary of the cell nucleus 
+	###------------------------------------------------------------------
+	def _CheckHitBoundary(self): 
+		pass
 
 	##-------------------------------------------------------------------
 	# class to save data to ascii file 
