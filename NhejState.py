@@ -83,7 +83,7 @@ class ComplexUnjoinedDsbState:
 
     def stateCheck(self):
         stateVector = self.getStateAsVector()
-        if any(stateVector>1) or sum(stateVector)>1:
+        if any(i > 1 for i in stateVector) or sum(stateVector)>1:
             raise ValueError("Invalid values for state")
 
     def stateStepping(self,dt):
@@ -137,7 +137,7 @@ class ComplexJoinedDsbState:
 
     def stateCheck(self):
         stateVector = self.getStateAsVector()
-        if any(stateVector>1) or sum(stateVector)>1:
+        if any(i > 1 for i in stateVector) or sum(stateVector)>1:
             raise ValueError("Invalid values for state")
 
     def stateStepping(self,dt):
