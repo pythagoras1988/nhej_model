@@ -47,7 +47,7 @@ class ClassifyDamage:
     #**************************************************************************
     def getDSB_data(self,chromosome_index):
         #Initialization
-    	data = np.zeros((self.getDSB(),5))
+    	data = np.zeros((self.getDSB()+1,5))
         for k in xrange(self.getDSB()+1):
             tmp    = (self.label==k)
             tmpDat = self.data[tmp,:]

@@ -17,6 +17,7 @@
 import numpy as np
 from process_damage import ProcessDamage
 from classify_damage import ClassifyDamage
+from NhejProcess import NhejPtr
 
 global debug
 debug = True
@@ -28,6 +29,7 @@ if __name__=='__main__':
 	if debug:
 		fname = 'damageMat0.txt'
 		numDamageData = 1
+		dsbMasterData = np.empty([0,5])
 	else:
 		## full cell nucleus irradiation; store all damageMat in 1 folder
 		totalEnergy = 0
@@ -50,8 +52,9 @@ if __name__=='__main__':
 	#**********************************************************************
 
 	for k in range(numDamageData):
-		totalEnergy += eDep[k]
-		fname = dirs(k)
+		if not debug:
+			totalEnergy += eDep[k]
+			fname = dirs(k)
 		procDamage = ProcessDamage(fname)
 
 		if not procDamage.get_FLAG_NULLDATA():
@@ -72,4 +75,4 @@ if __name__=='__main__':
 	##**********************************************************************
 	# Run NHEJ repair code for DSB master data
 	#***********************************************************************
-	nhejPtr = nhejPtr(dsbMasterData)
+	nhejPtr = NhejPtr(dsbMasterData)

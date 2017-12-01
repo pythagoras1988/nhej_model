@@ -8,11 +8,11 @@ class SimpleDsbState:
         self.ku_Li     = 0
         self.synapse   = 0
         self.null      = 0
-        self.ID.       = -1
+        self.ID        = -1
         self.position  = np.array([0,0,0])
         self._initialize()
 
-    def _initalize(self):
+    def _initialize(self):
         self.simpleDSB += 1
 
     def getStateAsVector(self):
@@ -32,7 +32,7 @@ class SimpleDsbState:
 
     def stateCheck(self):
         stateVector = self.getStateAsVector()
-        if any(stateVector>1) or sum(stateVector)>1:
+        if any(i > 1 for i in stateVector) or sum(stateVector)>1:
             raise ValueError("Invalid values for state")
 
     def stateStepping(self,dt):
@@ -54,7 +54,7 @@ class SimpleDsbState:
         r = np.random.uniform()
         return 1/self.rateConstant[ind] * np.log(1/r)
 
-    def Set_ID(self,ID): 
+    def Set_ID(self,ID):
         self.ID = ID
 
 class ComplexUnjoinedDsbState:
@@ -63,7 +63,7 @@ class ComplexUnjoinedDsbState:
         self.complexDSB = 0
         self.ku        = 0
         self.PKcs      = 0
-        self.ID.       = -1
+        self.ID        = -1
         self.position  = np.array([0,0,0])
         self._initialize()
 
@@ -103,7 +103,7 @@ class ComplexUnjoinedDsbState:
         r = np.random.uniform()
         return 1/self.rateConstant[ind] * np.log(1/r)
 
-    def Set_ID(self,ID): 
+    def Set_ID(self,ID):
         self.ID = ID
 
 class ComplexJoinedDsbState:
@@ -113,7 +113,7 @@ class ComplexJoinedDsbState:
         self.repairing = 0
         self.Li_XR = 0
         self.null = 0
-        self.ID.  = -1
+        self.ID   = -1
         self.position  = np.array([0,0,0])
         self._initialize()
 
@@ -159,5 +159,5 @@ class ComplexJoinedDsbState:
         r = np.random.uniform()
         return 1/self.rateConstant[ind] * np.log(1/r)
 
-    def Set_ID(self,ID): 
+    def Set_ID(self,ID):
         self.ID = ID
