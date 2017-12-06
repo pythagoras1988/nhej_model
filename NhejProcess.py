@@ -232,6 +232,7 @@ class LogData:
 			for k in range(len(data)):
 				saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \n'
 					%(data[k][0],data[k][1],data[k][2],data[k][3]))
+
 	##-------------------------------------------------------------------
 	# Destructor
 	###------------------------------------------------------------------
@@ -246,3 +247,6 @@ class PrintInfo:
 		print('Current Time = %f mins....' % (self.currTime/60))
 		print('Total number of unprocessed DSBs = %d ....' % self.numDSB)
 		print('-------------------------------------------------')
+
+	def _log_State_Data(self):
+		pass
