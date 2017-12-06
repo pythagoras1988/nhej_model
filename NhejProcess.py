@@ -20,12 +20,12 @@ class NhejPtr:
 		self._initializeDsbStates()
 
 		# Run each iterations using Gillespie algorithm
-		if self.currTime<self.totalTime or numDSB==0:
+		while (self.currTime<self.totalTime or self.numDSB==0):
 			self.OneIteration()
-			self.PrintInfo()
+			PrintInfo(self.currTime,self.numDSB)
 		# log data!
 		logdata = LogData()
-		logdata.Save_Rejoined_Data(self.rejoined_data)
+		logdata.Save_Rejoined_Data(self.rejoinedData)
 		logdata.Save_Repaired_List(self.repairedList)
 
 	##-------------------------------------------------------------------
@@ -36,15 +36,15 @@ class NhejPtr:
 		for k in range(len(self.data[:,0])):
 			if self.data[k,3] == 1:
 				self.stateList.append(NhejState.ComplexUnjoinedDsbState())
-				self.stateList[-1].position = self.data[k,0:2]
+				self.stateList[-1].position = self.data[k,0:3]
 				self.stateList[-1].Set_ID(count)
 				self.stateList.append(NhejState.ComplexUnjoinedDsbState())
-				self.stateList[-1].position = self.data[k,0:2]
+				self.stateList[-1].position = self.data[k,0:3]
 				self.stateList[-1].Set_ID(count)
 				count += 1
 			else:
 				self.stateList.append(NhejState.SimpleDsbState())
-				self.stateList[-1].position = self.data[k,0:2]
+				self.stateList[-1].position = self.data[k,0:3]
 				self.stateList[-1].Set_ID(count)
 				count += 1
 
@@ -79,10 +79,9 @@ class NhejPtr:
 		if dt > minTimeStep:
 			dt = minTimeStep # in seconds
 		self.currTime += dt
-		print("Current time is %f mins" %(self.currTime/60))
 		for k in range(self.numDSB):
 			#Update the state in 1 time step
-			self.stateList[k].stateStepping()
+			self.stateList[k].stateStepping(dt)
 			#Update the position in 1 time step
 			if self.GetStateType(self.stateList[k])<2:
 				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D2,dt)
@@ -91,6 +90,7 @@ class NhejPtr:
 		self._CheckHitBoundary()
 		self._Process_Rejoin()
 		self._Process_Repair()
+
 
 	##-------------------------------------------------------------------
 	# Algorithm to check for DSB rejoining
@@ -124,10 +124,10 @@ class NhejPtr:
 					print('|-------------------------------------------|')
 
 					# push rejoined state to the stateList
-					tmpPosition = (stateList[k].position() + stateList[kk].position())/2
-					stateList.append(NhejState.ComplexJoinedDsbState())
-					stateList[-1].position = tmpPosition
-					stateList[-1].set_ID(self.maxIndex)
+					tmpPosition = (self.stateList[k].position + self.stateList[kk].position)/2
+					self.stateList.append(NhejState.ComplexJoinedDsbState())
+					self.stateList[-1].position = tmpPosition
+					self.stateList[-1].set_ID(self.maxIndex)
 					self.maxIndex += 1
 
 					# Store rejoined state information into rejoinedList
@@ -143,7 +143,7 @@ class NhejPtr:
 					self.rejoinedData.append(tmp_rejoinedState) #Append the information of rejoining into rejoinedData!!
 
 		# delete rejoined DSBs from the stateList
-		del stateList[rejoined_list]
+		self.stateList = [self.stateList[k] for k in range(len(self.stateList)) if k not in rejoined_list]
 		self.numDSB = len(self.stateList) #Update number of states in the list
 
 	def _Compute_Pairwise_Distance(self,positionArray):
@@ -155,7 +155,7 @@ class NhejPtr:
 	###------------------------------------------------------------------
 	def _Process_Repair(self):
 		tmp_repairedList = []
-		for k in range(len(self.numDSB)):
+		for k in range(self.numDSB):
 			# Check that the DSB has finished repairing
 			if self.GetStateType(self.stateList[k])==2:
 				if self.stateList[k].null==1:
@@ -168,7 +168,7 @@ class NhejPtr:
 
 					tmp_repairedList.append(k)
 					self.repairedList.append(tmp_repairedState)
-		del self.stateList[tmp_repairedList]
+		self.stateList = [self.stateList[k] for k in range(len(self.stateList)) if k not in tmp_repairedList]
 		self.numDSB = len(self.stateList)
 
 	##-------------------------------------------------------------------
@@ -180,7 +180,7 @@ class NhejPtr:
 		return min(dt_List)
 
 	def FindStepSize(self,D,t):
-		stepVector = np.array([0,0,0])
+		stepVector = np.array([0.,0.,0.])
 		std = np.sqrt(2*D*t)
 		stepVector[0] = np.random.normal(0.0,std)
 		stepVector[1] = np.random.normal(0.0,std)
@@ -209,38 +209,40 @@ class NhejPtr:
 	# class to save data to ascii file
 	###------------------------------------------------------------------
 
-	class LogData:
-		def __init__(self):
-			self.dirName = 'Nhej_Repair_Outfiles'
-			if not os.path.isdir(self.dirName):
-				os.mkdir(self.dirName)
+class LogData:
+	def __init__(self):
+		self.dirName = 'Nhej_Repair_Outfiles'
+		if not os.path.isdir(self.dirName):
+			os.mkdir(self.dirName)
 
-		def Save_Rejoined_Data(self,data):
-			# Data is a list data with N x 8 elements
-			with open(self.dirName + '/rejoined_data.txt') as saveFile:
-				# Write header
-				saveFile.write('Time/mins \t xPos/A \t yPos/A \t zPos/A \t index_1 \t Type_1 \t index_2 \t Type_2 \n')
-				for k in range(len(data)):
-					saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \t %d \t %d \t %d \t %d \n'
-						%(data[k][0],data[k][1],data[k][2],data[k][3],data[k][4],data[k][5],data[k][6],data[k][7]))
+	def Save_Rejoined_Data(self,data):
+		# Data is a list data with N x 8 elements
+		with open(self.dirName + '/rejoined_data.txt','w') as saveFile:
+			# Write header
+			saveFile.write('Time/mins \t xPos/A \t yPos/A \t zPos/A \t index_1 \t Type_1 \t index_2 \t Type_2 \n')
+			for k in range(len(data)):
+				saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \t %d \t %d \t %d \t %d \n'
+					%(data[k][0],data[k][1],data[k][2],data[k][3],data[k][4],data[k][5],data[k][6],data[k][7]))
 
-		def Save_Repaired_List(self,data):
-			# Data is a list data with N x 4 elements
-			with open(self.dirName + '/repaired_data.txt') as saveFile:
-				# Write header
-				saveFile.write('Time/mins \t xPos/A \t yPos/A \t zPos/A \n')
-				for k in range(len(data)):
-					saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \n'
-						%(data[k][0],data[k][1],data[k][2],data[k][3]))
+	def Save_Repaired_List(self,data):
+		# Data is a list data with N x 4 elements
+		with open(self.dirName + '/repaired_data.txt','w') as saveFile:
+			# Write header
+			saveFile.write('Time/mins \t xPos/A \t yPos/A \t zPos/A \n')
+			for k in range(len(data)):
+				saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \n'
+					%(data[k][0],data[k][1],data[k][2],data[k][3]))
 	##-------------------------------------------------------------------
 	# Destructor
 	###------------------------------------------------------------------
-	class PrintInfo:
-		def __init__(self):
-			self._printStats()
+class PrintInfo:
+	def __init__(self,currTime,numDSB):
+		self.currTime = currTime
+		self.numDSB = numDSB
+		self._printStats()
 
-		def _printStats(self):
-			print('-------------------------------------------------')
-			print('Current Time = %f mins....' %self.currTime/60)
-			print('Total number of unprocessed DSBs = %d ....' %self.numDSB)
-			print('-------------------------------------------------')
+	def _printStats(self):
+		print('-------------------------------------------------')
+		print('Current Time = %f mins....' % (self.currTime/60))
+		print('Total number of unprocessed DSBs = %d ....' % self.numDSB)
+		print('-------------------------------------------------')
