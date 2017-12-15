@@ -18,13 +18,15 @@ class NhejPtr:
 
 		# Initialize all dsb states
 		self._initializeDsbStates()
+		logdata = LogData()
 
 		# Run each iterations using Gillespie algorithm
 		while (self.currTime<self.totalTime or self.numDSB==0):
 			self.OneIteration()
+			logdata.Save_State_Data(self.currTime,self.stateList)
 			PrintInfo(self.currTime,self.numDSB)
+			
 		# log data!
-		logdata = LogData()
 		logdata.Save_Rejoined_Data(self.rejoinedData)
 		logdata.Save_Repaired_List(self.repairedList)
 
@@ -83,7 +85,7 @@ class NhejPtr:
 			#Update the state in 1 time step
 			self.stateList[k].stateStepping(dt)
 			#Update the position in 1 time step
-			if self.GetStateType(self.stateList[k])<2:
+			if NhejPtr.GetStateType(self.stateList[k])<2:
 				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D2,dt)
 			else:
 				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D1,dt)
@@ -137,9 +139,9 @@ class NhejPtr:
 					tmp_rejoinedState[2] = tmpPosition[1]
 					tmp_rejoinedState[3] = tmpPosition[2]
 					tmp_rejoinedState[4] = k
-					tmp_rejoinedState[5] = self.GetStateType(self.stateList[k])
+					tmp_rejoinedState[5] = NhejPtr.GetStateType(self.stateList[k])
 					tmp_rejoinedState[6] = kk
-					tmp_rejoinedState[7] = self.GetStateType(self.stateList[kk])
+					tmp_rejoinedState[7] = NhejPtr.GetStateType(self.stateList[kk])
 					self.rejoinedData.append(tmp_rejoinedState) #Append the information of rejoining into rejoinedData!!
 
 		# delete rejoined DSBs from the stateList
@@ -157,7 +159,7 @@ class NhejPtr:
 		tmp_repairedList = []
 		for k in range(self.numDSB):
 			# Check that the DSB has finished repairing
-			if self.GetStateType(self.stateList[k])==2:
+			if NhejPtr.GetStateType(self.stateList[k])==2:
 				if self.stateList[k].null==1:
 					# Push the repaired state information to the repairedList
 					tmp_repairedState = [None] * 4 # initialization
@@ -187,7 +189,8 @@ class NhejPtr:
 		stepVector[2] = np.random.normal(0.0,std)
 		return stepVector
 
-	def GetStateType(self,state):
+	@staticmethod
+	def GetStateType(state):
 		stateName = state.__class__.__name__
 		if stateName=='SimpleDsbState':
 			return 0
@@ -212,8 +215,16 @@ class NhejPtr:
 class LogData:
 	def __init__(self):
 		self.dirName = 'Nhej_Repair_Outfiles'
+		self.fname_stateData = self.dirName + '/stateData.txt'
+
 		if not os.path.isdir(self.dirName):
 			os.mkdir(self.dirName)
+
+		# Open file for storing state Data
+		if os.path.isfile(self.fname_stateData):
+			os.remove(self.fname_stateData)
+			with open(self.fname_stateData,'w') as writeFile:
+				writeFile.write('Time\s \t Simple DSB \t Complex Unjoined DSB \t Complex Joined DSB \n')
 
 	def Save_Rejoined_Data(self,data):
 		# Data is a list data with N x 8 elements
@@ -233,6 +244,26 @@ class LogData:
 				saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \n'
 					%(data[k][0],data[k][1],data[k][2],data[k][3]))
 
+	def Save_State_Data(self,time,stateList):
+		# Initialize the state of interest
+		num_simple_dsb = 0
+		num_complex_unjoined_dsb = 0
+		num_complex_joined_dsb = 0
+		num_synapse = 0
+
+		for state in stateList:
+			stateType = NhejPtr.GetStateType(state)
+			if stateType == 0:
+				num_simple_dsb += 1
+			elif stateType == 1:
+				num_complex_unjoined_dsb += 1
+			else:
+				num_complex_joined_dsb += 1
+
+		with open(self.fname_stateData,'a') as writeFile:
+			writeFile.write('%f \t %d \t %d \t %d \n' %(time, num_simple_dsb,num_complex_unjoined_dsb,
+			num_complex_joined_dsb))
+
 	##-------------------------------------------------------------------
 	# Destructor
 	###------------------------------------------------------------------
@@ -247,6 +278,3 @@ class PrintInfo:
 		print('Current Time = %f mins....' % (self.currTime/60))
 		print('Total number of unprocessed DSBs = %d ....' % self.numDSB)
 		print('-------------------------------------------------')
-
-	def _log_State_Data(self):
-		pass
