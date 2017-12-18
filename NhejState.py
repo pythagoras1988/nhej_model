@@ -27,7 +27,7 @@ class SimpleDsbState:
         self.synapse += 1
 
     def stateChange3(self):
-        self.synpase -= 1
+        self.synapse -= 1
         self.null += 1
 
     def stateCheck(self):

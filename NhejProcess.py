@@ -8,11 +8,14 @@ class NhejPtr:
 		self.totalTime = 4 * 3600 # in seconds
 		self.currTime  = 0
 		self.numDSB    = len(data[:,0])
+		self.numDSB_simple = 0 
+		self.numDSB_complex = 0
 		self.D1        = 170*100 # in angstrom^2/s
 		self.D2        = self.D1/10
 		self.maxIndex  = 0
 		self.data = data
-		self.stateList = [] # list containing state instance objects
+		self.stateList_simple = [] # list containing state instance objects for simple DSB
+		self.stateList_complex = [] # list containing state instance objects for complex DSB
 		self.rejoinedData = [] # list containing information of the DSBs that have finished rejoining
 		self.repairedList = [] # list containing all states that have done repairing
 
@@ -37,22 +40,25 @@ class NhejPtr:
 		count = 0;
 		for k in range(len(self.data[:,0])):
 			if self.data[k,3] == 1:
-				self.stateList.append(NhejState.ComplexUnjoinedDsbState())
-				self.stateList[-1].position = self.data[k,0:3]
-				self.stateList[-1].Set_ID(count)
-				self.stateList.append(NhejState.ComplexUnjoinedDsbState())
-				self.stateList[-1].position = self.data[k,0:3]
-				self.stateList[-1].Set_ID(count)
+				self.stateList_complex.append(NhejState.ComplexUnjoinedDsbState())
+				self.stateList_complex[-1].position = self.data[k,0:3]
+				self.stateList_complex[-1].Set_ID(count)
+				self.stateList_complex.append(NhejState.ComplexUnjoinedDsbState())
+				self.stateList_complex[-1].position = self.data[k,0:3]
+				self.stateList_complex[-1].Set_ID(count)
 				count += 1
 			else:
-				self.stateList.append(NhejState.SimpleDsbState())
-				self.stateList[-1].position = self.data[k,0:3]
-				self.stateList[-1].Set_ID(count)
+				self.stateList_simple.append(NhejState.SimpleDsbState())
+				self.stateList_simple[-1].position = self.data[k,0:3]
+				self.stateList_simple[-1].Set_ID(count)
 				count += 1
 
 		self.maxIndex = count
+
 		# Update total number of breaks
-		self.numDSB = len(self.stateList)
+		self.numDSB_simple = len(stateList_simple)
+		self.numDSB_complex = len(stateList_complex)
+		self.numDSB = self.numDSB_simple + self.numDSB_complex
 
 	##-------------------------------------------------------------------------------------------------------------------
 	# Update state and position in 1 time step
@@ -81,14 +87,24 @@ class NhejPtr:
 		if dt > minTimeStep:
 			dt = minTimeStep # in seconds
 		self.currTime += dt
-		for k in range(self.numDSB):
+
+		# processing simple DSB !
+		for k in range(self.numDSB_simple):
 			#Update the state in 1 time step
-			self.stateList[k].stateStepping(dt)
+			self.stateList_simple[k].stateStepping(dt)
+			#Update the position in 1 time step
+			self.stateList_simple[k].position = self.stateList_simple[k].position + self.FindStepSize(self.D2,dt)
+
+		# processing complex DSB !
+		for k in range(self.numDSB_complex):
+			#Update the state in 1 time step
+			self.stateList_complex[k].stateStepping(dt)
 			#Update the position in 1 time step
 			if NhejPtr.GetStateType(self.stateList[k])<2:
-				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D2,dt)
+				self.stateList_complex[k].position = self.stateList_complex[k].position + self.FindStepSize(self.D2,dt)
 			else:
-				self.stateList[k].position = self.stateList[k].position + self.FindStepSize(self.D1,dt)
+				self.stateList_complex[k].position = self.stateList_complex[k].position + self.FindStepSize(self.D1,dt)
+				
 		self._CheckHitBoundary()
 		self._Process_Rejoin()
 		self._Process_Repair()
@@ -105,17 +121,17 @@ class NhejPtr:
 		rejoin_prob  = 0.5 # Probabilitistic rejoining
 
 		# initialize position arrays
-		positionArrays = np.zeros((self.numDSB,3))
-		for k in range(self.numDSB):
-			positionArrays[k,:] = self.stateList[k].position
+		positionArrays = np.zeros((self.numDSB_complex,3))
+		for k in range(self.numDSB_complex):
+			positionArrays[k,:] = self.stateList_complex[k].position
 
 		# Compute pairwise distance matrix
 		#pw_distance_matrix = self._Compute_Pairwise_Distance(positionArrays)
 
-		# Calculate which pair of DSBs will rejoin
+		# Calculate which pair of DSBs will rejoin for complex breaks only!
 		rejoined_list = []
-		for k in range(0,self.numDSB-1):
-			for kk in range(k+1,self.numDSB):
+		for k in range(0,self.numDSB_complex-1):
+			for kk in range(k+1,self.numDSB_complex):
 				dist = np.linalg.norm(positionArrays[k,:]-positionArrays[kk,:])
 				rand = np.random.uniform()
 				if (dist<=rejoin_distance and rand<=rejoin_prob):
@@ -126,7 +142,7 @@ class NhejPtr:
 					print('|-------------------------------------------|')
 
 					# push rejoined state to the stateList
-					tmpPosition = (self.stateList[k].position + self.stateList[kk].position)/2
+					tmpPosition = (self.stateList_complex[k].position + self.stateList_complex[kk].position)/2
 					self.stateList.append(NhejState.ComplexJoinedDsbState())
 					self.stateList[-1].position = tmpPosition
 					self.stateList[-1].set_ID(self.maxIndex)
@@ -224,13 +240,13 @@ class LogData:
 		if os.path.isfile(self.fname_stateData):
 			os.remove(self.fname_stateData)
 			with open(self.fname_stateData,'w') as writeFile:
-				writeFile.write('Time\s \t Simple DSB \t Complex Unjoined DSB \t Complex Joined DSB \n')
+				writeFile.write('Time/s \t Simple DSB \t Complex Unjoined DSB \t Complex Joined DSB \n')
 
 	def Save_Rejoined_Data(self,data):
 		# Data is a list data with N x 8 elements
 		with open(self.dirName + '/rejoined_data.txt','w') as saveFile:
 			# Write header
-			saveFile.write('Time/mins \t xPos/A \t yPos/A \t zPos/A \t index_1 \t Type_1 \t index_2 \t Type_2 \n')
+			saveFile.write('Time/s \t xPos/A \t yPos/A \t zPos/A \t index_1 \t Type_1 \t index_2 \t Type_2 \n')
 			for k in range(len(data)):
 				saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \t %d \t %d \t %d \t %d \n'
 					%(data[k][0],data[k][1],data[k][2],data[k][3],data[k][4],data[k][5],data[k][6],data[k][7]))
@@ -239,7 +255,7 @@ class LogData:
 		# Data is a list data with N x 4 elements
 		with open(self.dirName + '/repaired_data.txt','w') as saveFile:
 			# Write header
-			saveFile.write('Time/mins \t xPos/A \t yPos/A \t zPos/A \n')
+			saveFile.write('Time/s \t xPos/A \t yPos/A \t zPos/A \n')
 			for k in range(len(data)):
 				saveFile.write('%.2f \t %.1f \t %.1f \t %.1f \n'
 					%(data[k][0],data[k][1],data[k][2],data[k][3]))
