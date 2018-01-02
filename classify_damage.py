@@ -44,18 +44,20 @@ class ClassifyDamage:
     # Col 1,2,3: X,Y,Z Position
     # Col 4 : Simple or complex break (1 is complex)
     # Col 5 : Chromosome Index
+    # Col 6 : Genomic Index
     #**************************************************************************
     def getDSB_data(self,chromosome_index):
         #Initialization
-    	data = np.zeros((self.getDSB()+1,5))
+    	data = np.zeros((self.getDSB()+1,6))
         for k in xrange(self.getDSB()+1):
             tmp    = (self.label==k)
             tmpDat = self.data[tmp,:]
             data[k,0] = np.mean(tmpDat[:,3]) # x position
             data[k,1] = np.mean(tmpDat[:,4]) # y position
             data[k,2] = np.mean(tmpDat[:,5]) # z position
-            data[k,3] = self._classify_dsb_complexity(k,tmp)
-            data[k,4] = chromosome_index
+            data[k,3] = self._classify_dsb_complexity(k,tmp) # complexity of break
+            data[k,4] = chromosome_index # Chromosome ID
+            data[k,5] = np.rint(np.mean(tmpDat[:,0]))
         return data
 
     def _classify_dsb_complexity(self,k,tmp):

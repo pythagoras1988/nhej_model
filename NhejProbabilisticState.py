@@ -16,10 +16,10 @@ class SimpleDsbState:
         self.genomic_ID     = -1
         self.chromosome_ID  = -1
         self.synapse_ID    = -1
+        self.ID        = -1
         self.startPosition  = np.array([0,0,0])
-        self._initialize()
 
-    def _initialize(self,pos,gene_ID,chrom_ID):
+    def initialize(self,pos,gene_ID,chrom_ID):
         self.simpleDSB += 1
         self.startPosition = pos 
         self.genomic_ID = gene_ID 
@@ -63,10 +63,10 @@ class ComplexDsbState:
         self.genomic_ID     = -1
         self.chromosome_ID  = -1
         self.synapse_ID     = -1
-        self.position  = np.array([0,0,0])
-        self._initialize()
+        self.ID          = 0
+        self.startPosition  = np.array([0,0,0])
 
-    def _initialize(self,pos,gene_ID,chrom_ID):
+    def initialize(self,pos,gene_ID,chrom_ID):
         self.simpleDSB += 1
         self.startPosition = pos 
         self.genomic_ID = gene_ID 
@@ -93,5 +93,20 @@ class ComplexDsbState:
          #   raise ValueError("Sum of Probability not equal to 1")
         if any(i > 1 for i in self.getStateAsVector()) or any(i < 0 for i in self.getStateAsVector()):
         	raise ValueError("Invalid probability value!")	
+
+class PairingStates: 
+    def __init__(self): 
+        self.ID_1 = -1
+        self.ID_2 = -1 
+        self.pos1 = np.array([0,0,0]) 
+        self.pos2 = np.array([0,0,0]) 
+        self.RejoinedProb = 0
+
+    def initialize(self,id1,id2,pos1,pos2):
+        self.ID_1 = id1
+        self.ID_2 = id2 
+        self.pos1 = pos1 
+        self.pos2 = pos2 
+
 
 

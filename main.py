@@ -76,8 +76,8 @@ if __name__=='__main__':
 	##***********************************************************************************************************
 	# Run NHEJ repair code for DSB master data
 	# 
-	# dsbMasterData format: N X 5 Array
-	# xPosition(Angstrom) X yPosition(Angstrom) X zPosition(Angstrom) X Complexity of break X Chromosome Index
+	# dsbMasterData format: N X 6 numpy Array
+	# xPosition(Angstrom) X yPosition(Angstrom) X zPosition(Angstrom) X Complexity of break X Chromosome Index x Genomic Index
 	#************************************************************************************************************
 
-	nhejPtr = NhejPtr(dsbMasterData)
+	nhejPtr = NhejProcess(dsbMasterData)
