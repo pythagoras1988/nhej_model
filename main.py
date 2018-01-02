@@ -17,7 +17,8 @@
 import numpy as np
 from process_damage import ProcessDamage
 from classify_damage import ClassifyDamage
-from NhejProcess import NhejPtr
+#from NhejProcess import NhejPtr
+from NhejProbabilistic import NhejProcess
 
 global debug
 debug = True
@@ -72,7 +73,11 @@ if __name__=='__main__':
 				dsbMasterData = np.append(dsbMasterData,classifyDamage.getDSB_data(np.rint(23*np.random.uniform())),axis=0)
 
 
-	##**********************************************************************
+	##***********************************************************************************************************
 	# Run NHEJ repair code for DSB master data
-	#***********************************************************************
+	# 
+	# dsbMasterData format: N X 5 Array
+	# xPosition(Angstrom) X yPosition(Angstrom) X zPosition(Angstrom) X Complexity of break X Chromosome Index
+	#************************************************************************************************************
+
 	nhejPtr = NhejPtr(dsbMasterData)
