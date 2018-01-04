@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from NhejProbabilisticState import SimpleDsbState
 from NhejProbabilisticState import ComplexDsbState
 from NhejProbabilisticState import PairingStates
+from NhejMath import Calculate_spatial_prob
 
 # *************************************************************************************************************************
 # dsbMasterData format: N X 6 numpy Array 
@@ -64,7 +65,8 @@ class NhejProcess:
 			for kk in range(k+1,self.numDSB):
 				# The first Id s always smaller than the second ID
 				self.pairingStateList.append(PairingStates())
-				self.pairingStateList[-1].initialize(k,kk,self.stateList[k].startPosition,self.stateList[kk].startPosition)
+				self.pairingStateList[-1].initialize(k,kk,self.stateList[k].startPosition,self.stateList[kk].startPosition, 
+					self.stateList[k].chromosome_ID,self.stateList[kk].chromosome_ID)
 
 		# Check the pairing state List contains the correct number of elements
 		if len(self.pairingStateList)!=self.numPairingStates:
@@ -100,22 +102,28 @@ class NhejProcess:
 
 		return probabilityList
 
+	# Calculate rejoining probability between any 2 dsb ends!
+	# Rejoining Prob = spatial_intersection_prob x prob(end_1=ready) x prob(end_2=ready)
 	def ComputeRejoinProbability(self,state,option):
 		# Use simple model for computing rejoin probability; Neglect boundary and centromere effect 
 		if option == 'simple': 
 			spatial_prob = 1 / np.sqrt(2*np.pi) * 0.5
-			state_prob   = 1
-			if NhejProcess.GetStateType(self.stateList[state.ID_1]) == 0: 
-				state_prob *= self.stateList[state.ID_1].ku_XL 
-			else:  
-				state_prob *= self.stateList[state.ID_1].ku_PKcs_artemis
+		# take into account boundary effect of the chromosome
+		if option == 'bounded': 
+			spatial_prob = Calculate_spatial_prob(state)
+			
+		state_prob   = 1
+		if NhejProcess.GetStateType(self.stateList[state.ID_1]) == 0: 
+			state_prob *= self.stateList[state.ID_1].ku_XL 
+		else:  
+			state_prob *= self.stateList[state.ID_1].ku_PKcs_artemis
 
-			if NhejProcess.GetStateType(self.stateList[state.ID_2]) == 0: 
-				state_prob *= self.stateList[state.ID_2].ku_XL 
-			else:  
-				state_prob *= self.stateList[state.ID_2].ku_PKcs_artemis
+		if NhejProcess.GetStateType(self.stateList[state.ID_2]) == 0: 
+			state_prob *= self.stateList[state.ID_2].ku_XL 
+		else:  
+			state_prob *= self.stateList[state.ID_2].ku_PKcs_artemis
 
-			return spatial_prob*state_prob
+		return spatial_prob*state_prob
 
 	@staticmethod
 	def GetStateType(state):
@@ -127,6 +135,7 @@ class NhejProcess:
 		else:
 			raise Exception('Unknown States...')
 
+# Class to save data into ascii files and output to stdout
 class LogData:
 	def __init__(self):
 		self.dirName = 'Nhej_Repair_Outfiles'

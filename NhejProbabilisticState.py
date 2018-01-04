@@ -100,15 +100,19 @@ class PairingStates:
     def __init__(self): 
         self.ID_1 = -1
         self.ID_2 = -1 
+        self.chrom_ID1 = -1 
+        self.chrom_ID2 = -1
         self.pos1 = np.array([0,0,0]) 
         self.pos2 = np.array([0,0,0]) 
         self.RejoinedProb = 0
 
-    def initialize(self,id1,id2,pos1,pos2):
+    def initialize(self,id1,id2,pos1,pos2,chrom_ID1,chrom_ID2):
         self.ID_1 = id1
         self.ID_2 = id2 
         self.pos1 = pos1 
         self.pos2 = pos2 
+        self.chrom_ID1 = chrom_ID1
+        self.chrom_ID2 = chrom_ID2
 
 
 
