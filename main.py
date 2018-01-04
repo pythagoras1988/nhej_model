@@ -30,7 +30,7 @@ if __name__=='__main__':
 	if debug:
 		fname = 'damageMat0.txt'
 		numDamageData = 1
-		dsbMasterData = np.empty([0,5])
+		dsbMasterData = np.empty([0,6])
 	else:
 		## full cell nucleus irradiation; store all damageMat in 1 folder
 		totalEnergy = 0

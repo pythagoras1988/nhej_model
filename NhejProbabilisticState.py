@@ -7,7 +7,7 @@ class SimpleDsbState:
 	# ---(rate_2)---> ku release ---(rate_3)---> XL released (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.rateConstant = [4.5,2.5155,1]/60 #in per second
+        self.rateConstant = [4.5/60,2.5155/60,1./60] #in per second
         self.simpleDSB = 0
         self.ku_XL     = 0
         self.synapse   = 0
@@ -28,13 +28,14 @@ class SimpleDsbState:
     def getStateAsVector(self):
         return [self.simpleDSB,self.ku_XL,self.synapse,self.XL,self.null]
 
-    def formSynapse: 
+    def formSynapse(self): 
     	if self.synapse>0: 
     		return true
 
-    def stateUpdate(self,dt):
+    def stateUpdate(self,dt,synapseProb):
     	self.simpleDSB -= self.simpleDSB*self.rateConstant[0]*dt
-    	self.ku_XL += self.simpleDSB*self.rateConstant[0]*dt
+    	self.ku_XL += self.simpleDSB*self.rateConstant[0]*dt - synapseProb
+        self.synapse +=  synapseProb - self.synapse*self.rateConstant[1]*dt
     	self.XL = self.XL + self.synapse*self.rateConstant[1]*dt - self.XL*self.rateConstant[2]*dt
     	self.null += self.XL*self.rateConstant[2]*dt
 
@@ -52,7 +53,7 @@ class ComplexDsbState:
 	# ---(rate_2)---> artemis processing ---(rate_3)---> ku_DNA-PKcs_XL ---(rate_4)---> XL ---(rate_5)---> (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.rateConstant = [1,1,1,1,1] # in seconds
+        self.rateConstant = [1.,1.,1.,1.,1.] # in seconds
         self.complexDSB = 0
         self.ku_PKcs_artemis = 0
         self.synapse     = 0
@@ -75,13 +76,14 @@ class ComplexDsbState:
     def getStateAsVector(self):
         return [self.complexDSB,self.ku_Pkcs_artermis,self.synapse,self.ku_PKcs,self.ku_Pkcs_XL,self.XL,self.null]
 
-    def formSynapse: 
+    def formSynapse(self): 
     	if self.synapse>0: 
     		return true
 
-    def stateUpdate(self,dt):
+    def stateUpdate(self,dt,synapseProb):
     	self.complexDSB -= self.complexDSB*self.rateConstant[0]*dt
-    	self.ku_PKcs_artemis += self.complexDSB*self.rateConstant[0]*dt
+    	self.ku_PKcs_artemis += self.complexDSB*self.rateConstant[0]*dt - synapseProb
+        self.synapse += synapseProb - self.synapse*self.rateConstant[1]*dt
     	self.ku_PKcs = self.ku_PKcs + self.synapse*self.rateConstant[1]*dt - self.ku_PKcs*self.rateConstant[2]*dt
         self.ku_PKcs_XL = self.ku_PKcs_XL + self.ku_PKcs*self.rateConstant[2]*dt - self.ku_PKcs_XL*self.rateConstant[3]*dt
         self.XL = self.XL + self.ku_PKcs_XL*self.rateConstant[3]*dt - self.XL*self.rateConstant[4]*dt
