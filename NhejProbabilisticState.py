@@ -7,7 +7,7 @@ class SimpleDsbState:
 	# ---(rate_2)---> ku release ---(rate_3)---> XL released (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.rateConstant = [4.5/60,2.5155/60,1./60] #in per second
+        self.rateConstant = [1.,2.5155/60,3./60] #in per second
         self.simpleDSB = 0
         self.ku_XL     = 0
         self.synapse   = 0
@@ -33,11 +33,12 @@ class SimpleDsbState:
     		return true
 
     def stateUpdate(self,dt,synapseProb):
+        tmpVector = self.getStateAsVector()
     	self.simpleDSB -= self.simpleDSB*self.rateConstant[0]*dt
-    	self.ku_XL += self.simpleDSB*self.rateConstant[0]*dt - synapseProb
-        self.synapse +=  synapseProb - self.synapse*self.rateConstant[1]*dt
-    	self.XL = self.XL + self.synapse*self.rateConstant[1]*dt - self.XL*self.rateConstant[2]*dt
-    	self.null += self.XL*self.rateConstant[2]*dt
+    	self.ku_XL += tmpVector[0]*self.rateConstant[0]*dt - synapseProb*self.ku_XL
+        self.synapse +=  synapseProb*tmpVector[1] - self.synapse*self.rateConstant[1]*dt
+    	self.XL = self.XL + tmpVector[2]*self.rateConstant[1]*dt - self.XL*self.rateConstant[2]*dt  
+    	self.null += tmpVector[3]*self.rateConstant[2]*dt
 
     def stateCheck(self):
     	# Probability should sum up to 1
@@ -53,12 +54,12 @@ class ComplexDsbState:
 	# ---(rate_2)---> artemis processing ---(rate_3)---> ku_DNA-PKcs_XL ---(rate_4)---> XL ---(rate_5)---> (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.rateConstant = [1.,1.,1.,1.,1.] # in seconds
+        self.rateConstant = [1.,4.2257/60,4.5/60,2.7559/60,3./60] # in seconds
         self.complexDSB = 0
         self.ku_PKcs_artemis = 0
         self.synapse     = 0
         self.ku_PKcs     = 0
-        self.ku_Pkcs_XL  = 0
+        self.ku_PKcs_XL  = 0
         self.XL          = 0 
         self.null        = 0 
         self.genomic_ID     = -1
@@ -68,26 +69,27 @@ class ComplexDsbState:
         self.startPosition  = np.array([0,0,0])
 
     def initialize(self,pos,gene_ID,chrom_ID):
-        self.simpleDSB += 1
+        self.complexDSB += 1
         self.startPosition = pos 
         self.genomic_ID = gene_ID 
         self.chromosome_ID = chrom_ID
 
     def getStateAsVector(self):
-        return [self.complexDSB,self.ku_Pkcs_artermis,self.synapse,self.ku_PKcs,self.ku_Pkcs_XL,self.XL,self.null]
+        return [self.complexDSB,self.ku_PKcs_artemis,self.synapse,self.ku_PKcs,self.ku_PKcs_XL,self.XL,self.null]
 
     def formSynapse(self): 
     	if self.synapse>0: 
     		return true
 
     def stateUpdate(self,dt,synapseProb):
-    	self.complexDSB -= self.complexDSB*self.rateConstant[0]*dt
-    	self.ku_PKcs_artemis += self.complexDSB*self.rateConstant[0]*dt - synapseProb
-        self.synapse += synapseProb - self.synapse*self.rateConstant[1]*dt
-    	self.ku_PKcs = self.ku_PKcs + self.synapse*self.rateConstant[1]*dt - self.ku_PKcs*self.rateConstant[2]*dt
-        self.ku_PKcs_XL = self.ku_PKcs_XL + self.ku_PKcs*self.rateConstant[2]*dt - self.ku_PKcs_XL*self.rateConstant[3]*dt
-        self.XL = self.XL + self.ku_PKcs_XL*self.rateConstant[3]*dt - self.XL*self.rateConstant[4]*dt
-    	self.null += self.XL*self.rateConstant[4]*dt
+        tmpVector = self.getStateAsVector()
+    	self.complexDSB -= tmpVector[0]*self.rateConstant[0]*dt
+    	self.ku_PKcs_artemis += tmpVector[0]*self.rateConstant[0]*dt - synapseProb*tmpVector[1]
+        self.synapse += synapseProb*tmpVector[1] - tmpVector[2]*self.rateConstant[1]*dt
+    	self.ku_PKcs += tmpVector[2]*self.rateConstant[1]*dt - tmpVector[3]*self.rateConstant[2]*dt
+        self.ku_PKcs_XL += tmpVector[3]*self.rateConstant[2]*dt - tmpVector[4]*self.rateConstant[3]*dt
+        self.XL += tmpVector[4]*self.rateConstant[3]*dt - tmpVector[5]*self.rateConstant[4]*dt
+    	self.null += tmpVector[5]*self.rateConstant[4]*dt
 
     def stateCheck(self):
     	# Probability should sum up to 1

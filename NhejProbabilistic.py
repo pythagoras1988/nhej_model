@@ -12,23 +12,34 @@ from NhejMath import Calculate_spatial_prob
 #**************************************************************************************************************************
 
 global FLAG_configuration 
+global FLAG_saveData
 FLAG_configuration = False
+FLAG_saveData = False
 
 class NhejProcess: 
-	def __init__(self,dsbMasterData): 
-		self.currTime = 0 # in seconds
-		self.stopTime = 3 # in hours
+	def __init__(self,dsbMasterData,chromPos): 
+		##-----------------------------------------
+		# Program I/O 
+		##-----------------------------------------
+		self.plotOption = 'single'
+		self.rejoinModelOption = 'simple'
+		##-----------------------------------------
+		# Program Model Parameters
+		##-----------------------------------------		
+		self.currTime = 0.1 # in seconds
+		self.stopTime = 5./60 # in hours
 		self.stopTime *= 3600 # in seconds
-		self.dt       = 0.5 # in seconds
-		self.D1       = 170*100 # in angstrom^2/s
+		self.dt       = 0.2 # in seconds
+		self.D1       = 150*100 # in angstrom^2/s
 		self.D2       = self.D1/10
 		self.data     = dsbMasterData 
+		self.chromPos = chromPos
 		self.numDSB   = 0
 		self.stateList = []
 		self.pairingStateList = []
 
 		self.numDSB   = len(self.data[:,0])
-		self.numPairingStates = 0.5 * self.numDSB * (self.numDSB-1)
+		self.numPairingStates = 0.5 * 2 * self.numDSB * (2*self.numDSB-1)
 		self._InitializeDsbStates()
 		self._InitializePairingStates()
 		logdata = LogData()
@@ -37,7 +48,13 @@ class NhejProcess:
 			self.currTime += self.dt
 			self._OneIteration()
 			logdata.FillTime(self.currTime/60)
-			logdata.CalculateRepairedState(self.stateList,'multiple')
+			logdata.CalculateRepairedState(self.stateList,self.plotOption,0)
+			if FLAG_saveData: 
+				timeInterval = 0 
+				if self.currTime>timeInterval:
+					logdata.SaveSynapseRepairData(self.pairingStateList,self.currTime)
+					timeInterval += 0.5 # Save the rejoined data after every 0.5 seconds
+
 			print('Current Time = %.1f mins...' %(self.currTime/60))
 
 		logdata.ShowPlots()
@@ -46,7 +63,7 @@ class NhejProcess:
 	def _InitializeDsbStates(self):
 		count = 0
 		for k in range(self.numDSB): 
-			pos = self.data[k,0:2]
+			pos = self.data[k,0:3]
 			gene_ID  = self.data[k,5] 
 			chrom_ID = self.data[k,4]
 			for kk in range(2):
@@ -57,7 +74,7 @@ class NhejProcess:
 				self.stateList[-1].initialize(pos,gene_ID,chrom_ID)
 				self.stateList[-1].ID = count # Set unique ID for each DSB
 				count += 1
-		self.numDSb = len(self.stateList) # update the size of numDSB to account for all ends
+		self.numDSB = len(self.stateList) # update the size of numDSB to account for all ends
 
 	# Initialize the Probability lists of all possible rejoining states
 	def _InitializePairingStates(self): 	
@@ -70,12 +87,13 @@ class NhejProcess:
 
 		# Check the pairing state List contains the correct number of elements
 		if len(self.pairingStateList)!=self.numPairingStates:
-			raise Exceptions('Pairing State List construction errors...')
+			raise Exception('Pairing State List construction errors...')
 
 	def _OneIteration(self): 
 		# Update Rejoined Probability for Pairing states
 		for state in self.pairingStateList:
-			state.RejoinedProb = self.ComputeRejoinProbability(state,'simple')
+			state.RejoinedProb = self.ComputeRejoinProbability(state,self.rejoinModelOption)
+			#print state.RejoinedProb
 
 		# Compute Synapse formation probability for each DSB end
 		synapseProbList = self.ComputeSynapseProbability(self.pairingStateList)
@@ -85,19 +103,22 @@ class NhejProcess:
 		for state in self.stateList: 
 			state.stateUpdate(self.dt,synapseProbList[counter])
 			counter += 1
+			#print sum(state.getStateAsVector())
 
 	def ComputeSynapseProbability(self,pairingStateList): 
 		# state is the pairingStateList
 		probabilityList = []
 
 		#use uniform distribution for prior!
-		prior_pairedState = 1 / len(pairingStateList)
+		prior_pairedState = 1. / self.numDSB
 
 		for k in range(len(self.stateList)):
-			tmpProb = 0
+			tmpProb = 0.
 			for state in pairingStateList: 
 				if state.ID_1==k or state.ID_2==k:
-					tmpProb += state.RejoinedProb * prior_pairedState
+					tmpProb += state.RejoinedProb
+			if (tmpProb>1.): 
+				raise Exception('Pure Pairwise interaction hypothesis fails...')
 			probabilityList.append(tmpProb)
 
 		return probabilityList
@@ -107,10 +128,10 @@ class NhejProcess:
 	def ComputeRejoinProbability(self,state,option):
 		# Use simple model for computing rejoin probability; Neglect boundary and centromere effect 
 		if option == 'simple': 
-			spatial_prob = 1 / np.sqrt(2*np.pi) * 0.5
-		# take into account boundary effect of the chromosome
-		if option == 'bounded': 
-			spatial_prob = Calculate_spatial_prob(state)
+			spatial_prob = Calculate_spatial_prob(state,self.D1,self.currTime,self.chromPos,'simple').GetProbability()
+		# take into account boundary effect of the chromosome (single);debug purpose
+		if option == 'debug': 
+			spatial_prob = Calculate_spatial_prob(state,self.D1,self.currTime,self.chromPos,'debug').GetProbability()
 			
 		state_prob   = 1
 		if NhejProcess.GetStateType(self.stateList[state.ID_1]) == 0: 
@@ -139,19 +160,45 @@ class NhejProcess:
 class LogData:
 	def __init__(self):
 		self.dirName = 'Nhej_Repair_Outfiles'
+		self.option = None
 		self.time = []
 		self.plotData = []
 		self.multiplePlotData = [[] for x in range(4)]
+		self.stateList_simple = [[] for x in range(5)]
+		self.stateList_complex = [[] for x in range(7)]
 
 		if not os.path.isdir(self.dirName):
 			os.mkdir(self.dirName)
+
+		# Create files for saving data
+		if FLAG_saveData:
+			self.repairData_fname = self.dirName + '/' + 'Synapse_Repair_Data.txt'
+			if os.path.isfile(self.repairData_fname):
+				os.remove(self.repairData_fname)
 	
 	def FillTime(self,time): 
 		self.time.append(time)
 
-	def CalculateRepairedState(self,stateList,option): 
+	def CalculateRepairedState(self,stateList,option,ID=0): 
+		self.option = option
 		if option == 'single': 
-			self.plotData.append(stateList[0].null)
+			if NhejProcess.GetStateType(stateList[ID]): 
+				# Complex
+				self.stateList_complex[0].append(stateList[ID].complexDSB)
+				self.stateList_complex[1].append(stateList[ID].ku_PKcs_artemis)
+				self.stateList_complex[2].append(stateList[ID].synapse)
+				self.stateList_complex[3].append(stateList[ID].ku_PKcs)
+				self.stateList_complex[4].append(stateList[ID].ku_PKcs_XL)
+				self.stateList_complex[5].append(stateList[ID].XL)
+				self.stateList_complex[6].append(stateList[ID].null)
+			else:
+				# Simple
+				self.stateList_simple[0].append(stateList[ID].simpleDSB)
+				self.stateList_simple[1].append(stateList[ID].ku_XL)
+				self.stateList_simple[2].append(stateList[ID].synapse)
+				self.stateList_simple[3].append(stateList[ID].XL)
+				self.stateList_simple[4].append(stateList[ID].null)
+
 		elif option == 'mean': 
 			tmp_sum = 0
 			for k in range(len(stateList)): 
@@ -160,15 +207,41 @@ class LogData:
 		elif option == 'multiple': 
 			# only use this option if there are small number of DSB states
 			for k in range(len(self.multiplePlotData)): 
-				self.multiplePlotData[k].append(stateList[k].synapse)
+				self.multiplePlotData[k].append(stateList[k].null)
 
 	def ShowPlots(self): 
-		for k in range(len(self.multiplePlotData)): 
-			plt.plot(self.time,self.multiplePlotData[k],c=np.random.rand(3,1))
-		#plt.plot(self.time,self.plotData,'r-')
+		#print self.multiplePlotData
+		if self.option == 'multiple':
+			for k in range(len(self.multiplePlotData)): 
+				plt.plot(self.time,self.multiplePlotData[k],c=np.random.rand(3,1),label = str(k))
+		if self.option == 'single':
+			if not self.stateList_simple[0]: 
+				for k in range(len(self.self.stateList_complex)): 
+					plt.plot(self.time,self.stateList_complex[k],c=np.random.rand(3,1),label = str(k))
+			else: 
+				for k in range(len(self.stateList_simple)): 
+					plt.plot(self.time,self.stateList_simple[k],c=np.random.rand(3,1),label = str(k))
+
 		plt.xlabel('Time/mins')
 		plt.ylabel('Probability')
+		#plt.yscale('log')
+		plt.legend()
 		plt.show()
+
+	def SaveSynapseRepairData(self,pairingStateList,time):
+		# Only save non-Zero probabilities
+		with open(self.repairData_fname,'a') as writeFile: 
+			writeFile.write('%.1f \t' %time) # in seconds
+			for state in pairingStateList: 
+				if state.RejoinedProb > 0: 
+					writeFile.write('%d \t %d \t %.5f \n' %(state.ID_1, state.ID_2, state.RejoinedProb)) 
+
+class ChromosomeAberrationCalc: 
+	def __init__(self):
+		pass
+		
+
+
 
 
 

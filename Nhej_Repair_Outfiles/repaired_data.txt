@@ -1,1 +1,0 @@
-Time/mins 	 xPos/A 	 yPos/A 	 zPos/A 

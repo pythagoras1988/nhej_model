@@ -1,1 +1,0 @@
-Time/mins 	 xPos/A 	 yPos/A 	 zPos/A 	 index_1 	 Type_1 	 index_2 	 Type_2 

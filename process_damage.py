@@ -16,7 +16,7 @@ class ProcessDamage:
         self.FLAG_NULLDATA = False
 
         self.__readFile() # Read the data files into self.data
-        if self.data.size != 0 :
+        if self.data.size != 0 and self.data.ndim != 1:
             self.__get_total_damage()
         else:
             self.FLAG_NULLDATA = True
@@ -55,9 +55,8 @@ class ProcessDamage:
 
         # step 2: Consolidate damage from direct damage especially for full edep data files.
         # This requires the direct damage data to be together, before sorting
-        print self.data.shape
         self.data = self.__sum_direct_damage(self.data,self.dataLen)
-        print self.data.shape
+        #print self.data.shape
 
         # step 3: Remove direct damage withe eDep less than energy threshold
         tmp  = (self.data[:,8]<self.eThresh) * (self.data[:,6]==0)
@@ -75,7 +74,7 @@ class ProcessDamage:
 
     # Same as consolidate damage in matlab version
     def __sum_direct_damage(self,data,length):
-        if data.size == 0:
+        if data.size == 0 or len(data[:,0]) == 1:
             return data
         else:
             tmp = data[1,:]
