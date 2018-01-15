@@ -52,42 +52,56 @@ if __name__=='__main__':
 		totalDose = 0
 		dsbMasterData = np.empty([0,6])
 		path = 'damageData'
-		dirs = os.listdir(path)
+		damageDirs = []
+
+		## Get the number of damage data directories; There might be many photon damage data
+		for root, dirs, files in os.walk(os.getcwd()+'/damageData'):
+			for name in dirs: 
+				print os.path.join(root,name)
+				damageDirs.append(name)
+
+	for dirName in damageDirs:	
+		if len(damageDirs)>0:
+			path = 'damageData/' + dirName
+			dirs = os.listdir(path)
+		else: 
+			dirs = os.listdir(path)
+
 		numDamageData = len(dirs) - 2  #1 of the file is edepMaster
+
 		try:
 			eDep = np.loadtxt(path+'/edepMaster.txt')
 		except:
 			raise IOError('No energy deposition files!!')
 
-	#**********************************************************************
-	# Run Algorithm to process the raw damageMat files and classify
-	# the damage
-	#
-	# Raw damageMat ----> Process damage class ----> Classify damage class
-	# 					(Enforce direct/indirect 	(det. ssb, dsb, direct
-	#					   effect condition)		  indirect effect)
-	#**********************************************************************
+		#**********************************************************************
+		# Run Algorithm to process the raw damageMat files and classify
+		# the damage
+		#
+		# Raw damageMat ----> Process damage class ----> Classify damage class
+		# 					(Enforce direct/indirect 	(det. ssb, dsb, direct
+		#					   effect condition)		  indirect effect)
+		#**********************************************************************
 
-	for k in range(numDamageData):
-		if not debug:
-			totalDose += Energy2Dose(eDep[k])
-			fname = path + '/damageMat' + str(k) + '.txt'
-			print fname
-		procDamage = ProcessDamage(fname)
+		for k in range(numDamageData):
+			if not debug:
+				totalDose += Energy2Dose(eDep[k])
+				fname = path + '/damageMat' + str(k) + '.txt'
+			procDamage = ProcessDamage(fname)
 
-		if not procDamage.get_FLAG_NULLDATA():
-			#if debug:
-			#	np.savetxt('processed_damage_data.txt',procDamage.get_final_damage())
-			classifyDamage = ClassifyDamage(procDamage.get_final_damage(),procDamage.get_base_damage())
-			if debug:
-				print classifyDamage.getDBSCAN_label()
-				print classifyDamage.getDSB()
-				print classifyDamage.getSSB()
-				print classifyDamage.getDirectBreak()
-				print classifyDamage.getIndirectBreak()
-			if classifyDamage.getDSB()>=0:
-				dsbMasterData = np.append(dsbMasterData,classifyDamage.getDSB_data(np.rint(22*np.random.uniform())),axis=0)
-		print('Processing damage data number = %d; Dose = %.5f Gy...' %(k,totalDose))
+			if not procDamage.get_FLAG_NULLDATA():
+				#if debug:
+				#	np.savetxt('processed_damage_data.txt',procDamage.get_final_damage())
+				classifyDamage = ClassifyDamage(procDamage.get_final_damage(),procDamage.get_base_damage())
+				if debug:
+					print classifyDamage.getDBSCAN_label()
+					print classifyDamage.getDSB()
+					print classifyDamage.getSSB()
+					print classifyDamage.getDirectBreak()
+					print classifyDamage.getIndirectBreak()
+				if classifyDamage.getDSB()>=0:
+					dsbMasterData = np.append(dsbMasterData,classifyDamage.getDSB_data(np.rint(22*np.random.uniform())),axis=0)
+			print('Processing damage data number = %d; Dose = %.5f Gy...' %(k,totalDose))
 
 	##************************************************************************************************************************
 	# Run NHEJ repair code for DSB master data
@@ -95,7 +109,7 @@ if __name__=='__main__':
 	# dsbMasterData format: N X 6 numpy Array
 	# xPosition(Angstrom) X yPosition(Angstrom) X zPosition(Angstrom) X Complexity of break X Chromosome Index x Genomic Index
 	#*************************************************************************************************************************
-	
+		
 	#-------------------------------------------------------------
 	# Print Overall Statistics! 
 	#-------------------------------------------------------------

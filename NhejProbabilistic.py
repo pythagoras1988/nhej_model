@@ -5,6 +5,7 @@ from NhejProbabilisticState import SimpleDsbState
 from NhejProbabilisticState import ComplexDsbState
 from NhejProbabilisticState import PairingStates
 from NhejMath import Calculate_spatial_prob
+from ExperimentData import Cobalt_60_gamma
 
 # *************************************************************************************************************************
 # dsbMasterData format: N X 6 numpy Array 
@@ -21,16 +22,16 @@ class NhejProcess:
 		##-----------------------------------------
 		# Program I/O 
 		##-----------------------------------------
-		self.plotOption = 'single'
+		self.plotOption = 'mean'
 		self.rejoinModelOption = 'simple'
 		##-----------------------------------------
 		# Program Model Parameters
 		##-----------------------------------------		
 		self.currTime = 0.1 # in seconds
-		self.stopTime = 5./60 # in hours
+		self.stopTime = 30./60 # in hours
 		self.stopTime *= 3600 # in seconds
-		self.dt       = 0.2 # in seconds
-		self.D1       = 150*100 # in angstrom^2/s
+		self.dt       = 0.5 # in seconds
+		self.D1       = 100*100 # in angstrom^2/s
 		self.D2       = self.D1/10
 		self.data     = dsbMasterData 
 		self.chromPos = chromPos
@@ -55,7 +56,7 @@ class NhejProcess:
 					logdata.SaveSynapseRepairData(self.pairingStateList,self.currTime)
 					timeInterval += 0.5 # Save the rejoined data after every 0.5 seconds
 
-			print('Current Time = %.1f mins...' %(self.currTime/60))
+			print('Current Time = %.2f mins...' %(self.currTime/60))
 
 		logdata.ShowPlots()
 
@@ -203,7 +204,7 @@ class LogData:
 			tmp_sum = 0
 			for k in range(len(stateList)): 
 				tmp_sum += stateList[k].null 
-			self.plotData.append(tmp_sum / (k+1) )
+			self.plotData.append(1 - tmp_sum / (k+1) )
 		elif option == 'multiple': 
 			# only use this option if there are small number of DSB states
 			for k in range(len(self.multiplePlotData)): 
@@ -221,10 +222,15 @@ class LogData:
 			else: 
 				for k in range(len(self.stateList_simple)): 
 					plt.plot(self.time,self.stateList_simple[k],c=np.random.rand(3,1),label = str(k))
+		if self.option == 'mean':
+			# Plot the remaining DSBs over time
+			plt.plot(self.time,self.plotData,'r',label='DSBs Percentage')
 
+		self._PlotExperimentData()
 		plt.xlabel('Time/mins')
 		plt.ylabel('Probability')
 		#plt.yscale('log')
+		plt.xlim(0,75)
 		plt.legend()
 		plt.show()
 
@@ -235,6 +241,10 @@ class LogData:
 			for state in pairingStateList: 
 				if state.RejoinedProb > 0: 
 					writeFile.write('%d \t %d \t %.5f \n' %(state.ID_1, state.ID_2, state.RejoinedProb)) 
+
+	def _PlotExperimentData(self):
+		data = Cobalt_60_gamma().GetNumDSB()
+		plt.errorbar(data[:,0]*60,data[:,1],yerr=data[:,2],label='Co-60')
 
 class ChromosomeAberrationCalc: 
 	def __init__(self):
