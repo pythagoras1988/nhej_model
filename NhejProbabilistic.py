@@ -20,9 +20,11 @@ from ExperimentData import Al_k_gamma
 global FLAG_configuration 
 global FLAG_saveData
 global numProcess 
+global numDSB_global 	
 FLAG_configuration = False
 FLAG_saveData = False
-numProcess = 6
+numProcess = 4
+numDSB_global = 0
 
 ###---------------------------------------------------------------------------------------------------------------------------
 # This portion of the code is for parallel Processing 																		 |
@@ -75,8 +77,16 @@ def CalculateRejoinProbPerState(state,time,chromPosArr,stateList):														
 	except:																													#|
 		state_prob *= self.stateList[state.ID_2].ku_PKcs_artemis															#|
 																															#|
-	state.RejoinedProb = prob * stateProb 																					#|
-##----------------------------------------------------------------------------------------------------------------------------
+	state.RejoinedProb = prob * stateProb 	
+
+def ComputeSynapsePartialProb(stateList):
+	partialArr = np.zeros(numDSB_global)
+	for k in range(numDSB_global):
+		for state in stateList: 
+			if state.ID_1==k or state.ID_2==k : 
+				partialArr[k] += state.RejoinedProb	
+	return partialArr																		
+##---------------------------------------------------------------------------------------------------------------------------
 
 class NhejProcess: 
 	def __init__(self,dsbMasterData,chromPos): 
@@ -111,6 +121,8 @@ class NhejProcess:
 		##----------------------------------------
 		# Start Multiprocessing 
 		##----------------------------------------
+		global numDSB_global
+		numDSB_global = self.numDSB
 		self.pool = Pool(processes=numProcess)
 
 		while(self.currTime < self.stopTime): 
@@ -177,31 +189,36 @@ class NhejProcess:
 		# Compute Synapse formation probability for each DSB end
 		synapseProbList = self.ComputeSynapseProbability(self.pairingStateList)
 		print time.time() - startTime
+
 		# Update the state of each DSB end first
 		counter = 0 
 		for state in self.stateList: 
 			state.stateUpdate(self.dt,synapseProbList[counter])
 			counter += 1
 			#print sum(state.getStateAsVector())
-		print time.time() - startTime
 
 	def ComputeSynapseProbability(self,pairingStateList): 
 		# state is the pairingStateList
 		probabilityList = np.zeros(self.numDSB)
 
-		#use uniform distribution for prior!
-		prior_pairedState = 1. / self.numDSB
-
+		#Divide pairingStateList for Multiprocessing
+		parallelList = [ [] for k in range(numProcess)]
+		counter = 0
+		for state in pairingStateList:
+			parallelList[counter%numProcess].append(state)
+			counter += 1
+		
+		'''
 		for k in range(len(self.stateList)):
 			tmpProb = 0.
-			for state in pairingStateList: 
-				if state.ID_1==k or state.ID_2==k:
-					tmpProb += state.RejoinedProb
+			#for state in pairingStateList: 
+			#	if state.ID_1==k or state.ID_2==k:
+			#		tmpProb += state.RejoinedProb		
 			if (tmpProb>1.): 
 				raise Exception('Pure Pairwise interaction hypothesis fails...')
 			probabilityList[k] = tmpProb
-
-		return probabilityList
+		'''  
+		return sum(self.pool.map(ComputeSynapsePartialProb,parallelList))
 
 	# Calculate rejoining probability between any 2 dsb ends!
 	# Rejoining Prob = spatial_intersection_prob x prob(end_1=ready) x prob(end_2=ready)
