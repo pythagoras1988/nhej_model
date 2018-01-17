@@ -13,7 +13,6 @@
 # Date: 23/8/2017
 #--------------------------------------------------------------------------------------------------------
 
-
 import numpy as np
 import time
 import os
@@ -37,6 +36,9 @@ class PlaceChromosome:
 
 	def GetPosition(self): 
 		return self.chromPosArray
+
+class SampleChromosomePosition:
+	pass
 
 
 if __name__=='__main__':
@@ -113,6 +115,7 @@ if __name__=='__main__':
 	#-------------------------------------------------------------
 	# Print Overall Statistics! 
 	#-------------------------------------------------------------
+	print dsbMasterData
 	numSimpleBreaks  = sum(dsbMasterData[:,3]==0)
 	numComplexBreaks = sum(dsbMasterData[:,3]==1)
 	print('Total Number of DSBs = %d' %(len(dsbMasterData[:,0])))

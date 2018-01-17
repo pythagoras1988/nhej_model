@@ -35,24 +35,27 @@ class Calculate_spatial_prob:
 		self.pos1 = self.pos1 + self.chromPosArr[self.chromID1,:].T
 		self.pos2 = self.pos2 + self.chromPosArr[self.chromID2,:].T
 
-		prob = 1.
-		for k in range(3):
-			#--------------------------------------------------------------------------------------------------------------
-			# Model for scaling the diffusion constant to take into account the effect of chromosome territory and boundary
-			#--------------------------------------------------------------------------------------------------------------
-			sigma1 = np.sqrt(2*self.D*self.time)
-			sigma2 = sigma1
-			if sigma1>minDist1[k]: 
-				sigma1 = minDist1[k]
-			if sigma2>minDist2[k]:
-				sigma2 = minDist2[k]
-			alpha1 = 1/(2*sigma1**2)
-			beta1  = 1/(np.sqrt(2)*sigma2)
-			#--------------------------------------------------------------------------------------------------------------
-			gamma1 = (self.pos1[k]-self.pos2[k]+delta)/(np.sqrt(2)*sigma2)
-			gamma2 = (self.pos1[k]-self.pos2[k]-delta)/(np.sqrt(2)*sigma2)
-			prob *= 1./2* (sp.erf(gamma1*np.sqrt(alpha1/(alpha1+beta1**2)))-sp.erf(gamma2*np.sqrt(alpha1/(alpha1+beta1**2))))
-		#print prob
+		if np.linalg.norm(self.pos1-self.pos2) < 3000:
+			prob = 1.
+			for k in range(3):
+				#--------------------------------------------------------------------------------------------------------------
+				# Model for scaling the diffusion constant to take into account the effect of chromosome territory and boundary
+				#--------------------------------------------------------------------------------------------------------------
+				sigma1 = np.sqrt(2*self.D*self.time)
+				sigma2 = sigma1
+				if sigma1>minDist1[k]: 
+					sigma1 = minDist1[k]
+				if sigma2>minDist2[k]:
+					sigma2 = minDist2[k]
+				alpha1 = 1/(2*sigma1**2)
+				beta1  = 1/(np.sqrt(2)*sigma2)
+				#--------------------------------------------------------------------------------------------------------------
+				gamma1 = (self.pos1[k]-self.pos2[k]+delta)/(np.sqrt(2)*sigma2)
+				gamma2 = (self.pos1[k]-self.pos2[k]-delta)/(np.sqrt(2)*sigma2)
+				prob *= 1./2* (sp.erf(gamma1*np.sqrt(alpha1/(alpha1+beta1**2)))-sp.erf(gamma2*np.sqrt(alpha1/(alpha1+beta1**2))))
+			#print prob
+		else: 
+			prob = 0. 
 		return prob 
 
 
