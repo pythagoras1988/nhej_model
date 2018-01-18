@@ -19,6 +19,7 @@ import os
 from process_damage import ProcessDamage
 from classify_damage import ClassifyDamage
 from NhejProbabilistic import NhejProcess
+from SampleChromosomePosition import SampleChromosomePosition
 
 global debug
 debug = False
@@ -36,10 +37,6 @@ class PlaceChromosome:
 
 	def GetPosition(self): 
 		return self.chromPosArray
-
-class SampleChromosomePosition:
-	pass
-
 
 if __name__=='__main__':
 	#**********************************************************************
@@ -102,7 +99,7 @@ if __name__=='__main__':
 					print classifyDamage.getDirectBreak()
 					print classifyDamage.getIndirectBreak()
 				if classifyDamage.getDSB()>=0:
-					dsbMasterData = np.append(dsbMasterData,classifyDamage.getDSB_data(np.rint(22*np.random.uniform())),axis=0)
+					dsbMasterData = np.append(dsbMasterData,classifyDamage.getDSB_data(np.rint(45*np.random.uniform())),axis=0)
 			print('Processing damage data number = %d; Dose = %.5f Gy...' %(k,totalDose))
 
 	##************************************************************************************************************************
@@ -121,4 +118,4 @@ if __name__=='__main__':
 	print('Total Number of DSBs = %d' %(len(dsbMasterData[:,0])))
 	print('Simple DSB = %d, Complex DSB = %d' %(numSimpleBreaks,numComplexBreaks))
 	time.sleep(3)
-	nhejPtr = NhejProcess(dsbMasterData,PlaceChromosome().GetPosition())
+	nhejPtr = NhejProcess(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile())
