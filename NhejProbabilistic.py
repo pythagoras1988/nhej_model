@@ -23,7 +23,7 @@ global numProcess
 global numDSB_global 	
 FLAG_configuration = False
 FLAG_saveData = False
-numProcess = 4
+numProcess = 6
 numDSB_global = 0
 
 ###---------------------------------------------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ def ComputeSynapsePartialProb(stateList):
 		for state in stateList: 
 			if state.ID_1==k or state.ID_2==k : 
 				partialArr[k] += state.RejoinedProb	
-	return partialArr																		
+	return partialArr																										#|
 ##---------------------------------------------------------------------------------------------------------------------------
 
 class NhejProcess: 
@@ -99,7 +99,7 @@ class NhejProcess:
 		# Program Model Parameters
 		##-----------------------------------------		
 		self.currTime = 0.1 # in seconds
-		self.stopTime = 10./60 # in hours
+		self.stopTime = 0.03/60 # in hours
 		self.stopTime *= 3600 # in seconds
 		self.dt       = 0.5 # in seconds
 		self.D1       = 100*100 # in angstrom^2/s
@@ -359,7 +359,7 @@ class LogData:
 
 	def _PlotExperimentData(self):
 		data = Cobalt_60_gamma().GetNumDSB()
-		data = Al_k_Gamma().GetData_27Gy()
+		data = Al_k_gamma().GetData_27Gy()
 		plt.errorbar(data[:,0],data[:,1],yerr=data[:,2],label='Al_k')
 
 class ChromosomeAberrationCalc: 
