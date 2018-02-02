@@ -1,13 +1,13 @@
-import numpy as np 
+import numpy as np
 import os
 
 class SimpleDsbState:
 	#------------------------------------------------------------------------------------------------
-	# Simple DSB end ---(rate_1)---> Binding of Ku and XL ---(diffusion)---> Synapsis Formation 
+	# Simple DSB end ---(rate_1)---> Binding of Ku and XL ---(diffusion)---> Synapsis Formation
 	# ---(rate_2)---> ku release ---(rate_3)---> XL released (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.rateConstant = [1./60,2.5155/60, 0.02/60] #in per second
+        self.rateConstant = [1.,2.5155/60, 0.02/60] #in per second
         self.simpleDSB = 0
         self.ku_XL     = 0
         self.synapse   = 0
@@ -21,15 +21,15 @@ class SimpleDsbState:
 
     def initialize(self,pos,gene_ID,chrom_ID):
         self.simpleDSB += 1
-        self.startPosition = pos 
-        self.genomic_ID = gene_ID 
+        self.startPosition = pos
+        self.genomic_ID = gene_ID
         self.chromosome_ID = chrom_ID
 
     def getStateAsVector(self):
         return [self.simpleDSB,self.ku_XL,self.synapse,self.XL,self.null]
 
-    def formSynapse(self): 
-    	if self.synapse>0: 
+    def formSynapse(self):
+    	if self.synapse>0:
     		return true
 
     def stateUpdate(self,dt,synapseProb):
@@ -37,7 +37,7 @@ class SimpleDsbState:
     	self.simpleDSB -= self.simpleDSB*self.rateConstant[0]*dt
     	self.ku_XL += tmpVector[0]*self.rateConstant[0]*dt - synapseProb*self.ku_XL
         self.synapse +=  synapseProb*tmpVector[1] - self.synapse*self.rateConstant[1]*dt
-    	self.XL = self.XL + tmpVector[2]*self.rateConstant[1]*dt - self.XL*self.rateConstant[2]*dt  
+    	self.XL = self.XL + tmpVector[2]*self.rateConstant[1]*dt - self.XL*self.rateConstant[2]*dt
     	self.null += tmpVector[3]*self.rateConstant[2]*dt
 
     def stateCheck(self):
@@ -50,18 +50,18 @@ class SimpleDsbState:
 
 class ComplexDsbState:
 	#------------------------------------------------------------------------------------------------
-	# Complex DSB end ---(rate_1)---> Binding of Ku,DNA-Pkcs,Artemis ---(diffusion)---> Synapsis Formation 
+	# Complex DSB end ---(rate_1)---> Binding of Ku,DNA-Pkcs,Artemis ---(diffusion)---> Synapsis Formation
 	# ---(rate_2)---> artemis processing ---(rate_3)---> ku_DNA-PKcs_XL ---(rate_4)---> XL ---(rate_5)---> (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.rateConstant = [1./60,4.2257/60,4.5/60,2.7559/60, 0.02/60] # in seconds
+        self.rateConstant = [1.,4.2257/60,4.5/60,2.7559/60, 0.02/60] # in seconds
         self.complexDSB = 0
         self.ku_PKcs_artemis = 0
         self.synapse     = 0
         self.ku_PKcs     = 0
         self.ku_PKcs_XL  = 0
-        self.XL          = 0 
-        self.null        = 0 
+        self.XL          = 0
+        self.null        = 0
         self.genomic_ID     = -1
         self.chromosome_ID  = -1
         self.synapse_ID     = -1
@@ -70,15 +70,15 @@ class ComplexDsbState:
 
     def initialize(self,pos,gene_ID,chrom_ID):
         self.complexDSB += 1
-        self.startPosition = pos 
-        self.genomic_ID = gene_ID 
+        self.startPosition = pos
+        self.genomic_ID = gene_ID
         self.chromosome_ID = chrom_ID
 
     def getStateAsVector(self):
         return [self.complexDSB,self.ku_PKcs_artemis,self.synapse,self.ku_PKcs,self.ku_PKcs_XL,self.XL,self.null]
 
-    def formSynapse(self): 
-    	if self.synapse>0: 
+    def formSynapse(self):
+    	if self.synapse>0:
     		return true
 
     def stateUpdate(self,dt,synapseProb):
@@ -96,25 +96,22 @@ class ComplexDsbState:
     	#if sum(self.getStateAsVector()!=1):
          #   raise ValueError("Sum of Probability not equal to 1")
         if any(i > 1 for i in self.getStateAsVector()) or any(i < 0 for i in self.getStateAsVector()):
-        	raise ValueError("Invalid probability value!")	
+        	raise ValueError("Invalid probability value!")
 
-class PairingStates: 
-    def __init__(self): 
+class PairingStates:
+    def __init__(self):
         self.ID_1 = -1
-        self.ID_2 = -1 
-        self.chrom_ID1 = -1 
+        self.ID_2 = -1
+        self.chrom_ID1 = -1
         self.chrom_ID2 = -1
-        self.pos1 = np.array([0,0,0]) 
-        self.pos2 = np.array([0,0,0]) 
+        self.pos1 = np.array([0,0,0])
+        self.pos2 = np.array([0,0,0])
         self.RejoinedProb = 0.
 
     def initialize(self,id1,id2,pos1,pos2,chrom_ID1,chrom_ID2):
         self.ID_1 = id1
-        self.ID_2 = id2 
-        self.pos1 = pos1 
-        self.pos2 = pos2 
+        self.ID_2 = id2
+        self.pos1 = pos1
+        self.pos2 = pos2
         self.chrom_ID1 = chrom_ID1
         self.chrom_ID2 = chrom_ID2
-
-
-

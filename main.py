@@ -24,18 +24,18 @@ from SampleChromosomePosition import SampleChromosomePosition
 global debug
 debug = False
 
-def Energy2Dose(energy): 
+def Energy2Dose(energy):
 	mass = 1.0 * (1.5**3) * 10**-12 * 10**-3
-	return energy* 1.6 * 10**-19 /(46*mass) 
+	return energy* 1.6 * 10**-19 /(46*mass)
 
-class PlaceChromosome: 
-	def __init__(self): 
-		try: 
+class PlaceChromosome:
+	def __init__(self):
+		try:
 			self.chromPosArray = np.loadtxt('chromosome_positions_final.txt')
-		except: 
+		except:
 			raise IOError('No Chromosome positions file present!!')
 
-	def GetPosition(self): 
+	def GetPosition(self):
 		return self.chromPosArray
 
 if __name__=='__main__':
@@ -55,15 +55,15 @@ if __name__=='__main__':
 
 		## Get the number of damage data directories; There might be many photon damage data
 		for root, dirs, files in os.walk(os.getcwd()+'/damageData'):
-			for name in dirs: 
+			for name in dirs:
 				print os.path.join(root,name)
 				damageDirs.append(name)
 
-	for dirName in damageDirs:	
+	for dirName in damageDirs:
 		if len(damageDirs)>0:
 			path = 'damageData/' + dirName
 			dirs = os.listdir(path)
-		else: 
+		else:
 			dirs = os.listdir(path)
 
 		numDamageData = len(dirs) - 2  #1 of the file is edepMaster
@@ -104,17 +104,17 @@ if __name__=='__main__':
 
 	##************************************************************************************************************************
 	# Run NHEJ repair code for DSB master data
-	# 
+	#
 	# dsbMasterData format: N X 6 numpy Array
 	# xPosition(Angstrom) X yPosition(Angstrom) X zPosition(Angstrom) X Complexity of break X Chromosome Index x Genomic Index
 	#*************************************************************************************************************************
-		
+
 	#-------------------------------------------------------------
-	# Print Overall Statistics! 
+	# Print Overall Statistics!
 	#-------------------------------------------------------------
 	numSimpleBreaks  = sum(dsbMasterData[:,3]==0)
 	numComplexBreaks = sum(dsbMasterData[:,3]==1)
 	print('Total Number of DSBs = %d' %(len(dsbMasterData[:,0])))
 	print('Simple DSB = %d, Complex DSB = %d' %(numSimpleBreaks,numComplexBreaks))
 	time.sleep(3)
-	nhejPtr = NhejProcess(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile())
+	nhejPtr = NhejProcess(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile(),totalDose)
