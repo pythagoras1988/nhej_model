@@ -5,7 +5,7 @@ import os
 
 class SampleChromosomePosition:
 	def __init__(self): 
-		bufferDistance = 1000 # in angstrom
+		bufferDistance = 500 # in angstrom
 		self.numChromosome = 46
 		self.radiusNucleus = 6 # in microns 
 		self.radiusNucleus *= 10**4 # convert to angstroms

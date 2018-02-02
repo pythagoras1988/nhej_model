@@ -11,6 +11,7 @@ from NhejProbabilisticState import PairingStates
 from NhejMath import Calculate_spatial_prob
 from ExperimentData import Cobalt_60_gamma
 from ExperimentData import Al_k_gamma
+from ExperimentData import Ce_137_gamma
 
 # *************************************************************************************************************************
 # dsbMasterData format: N X 6 numpy Array 
@@ -99,7 +100,7 @@ class NhejProcess:
 		# Program Model Parameters
 		##-----------------------------------------		
 		self.currTime = 0.1 # in seconds
-		self.stopTime = 0.03/60 # in hours
+		self.stopTime = 10./60 # in hours
 		self.stopTime *= 3600 # in seconds
 		self.dt       = 0.5 # in seconds
 		self.D1       = 100*100 # in angstrom^2/s
@@ -243,6 +244,7 @@ class NhejProcess:
 
 		return spatial_prob*state_prob
 
+	# Check for relevant pairing states; states that are far away will never rejoin together
 	def _RelevantPairingState(self,k,kk):
 		distanceThreshold = 3. # in Microns 
 		distanceThreshold *= 10**4
@@ -311,15 +313,17 @@ class LogData:
 			for k in range(len(stateList)): 
 				if NhejProcess.GetStateType(stateList[k]): 
 					#complex
-					tmp_sum += stateList[k].ku_PKcs_artemis
-					tmp_sum += stateList[k].ku_PKcs
-					tmp_sum += stateList[k].ku_PKcs_XL
-					tmp_sum += stateList[k].synapse	
+					tmp_sum += stateList[k].null
+					#tmp_sum += stateList[k].ku_PKcs_artemis
+					#tmp_sum += stateList[k].ku_PKcs
+					#tmp_sum += stateList[k].ku_PKcs_XL
+					#tmp_sum += stateList[k].synapse	
 				else: 
 					#simple
-					tmp_sum += stateList[k].ku_XL
-					tmp_sum += stateList[k].synapse
-			self.plotData.append(tmp_sum / (k+1) )
+					tmp_sum += stateList[k].null
+					#tmp_sum += stateList[k].ku_XL
+					#tmp_sum += stateList[k].synapse
+			self.plotData.append(tmp_sum/(k+1.))
 		elif option == 'multiple': 
 			# only use this option if there are small number of DSB states
 			for k in range(len(self.multiplePlotData)): 
@@ -360,9 +364,11 @@ class LogData:
 	def _PlotExperimentData(self):
 		data = Cobalt_60_gamma().GetNumDSB()
 		data = Al_k_gamma().GetData_27Gy()
-		plt.errorbar(data[:,0],data[:,1],yerr=data[:,2],label='Al_k')
+		data = Ce_137_gamma().GetData_40Gy()
+		#plt.errorbar(data[:,0],data[:,1],yerr=data[:,2],label='Al_k')
+		plt.plot(data[:,0]*60,data[:,1]/max(data[:,1]),'ro',label='Ce-137')
 
-class ChromosomeAberrationCalc: 
+class ChromosomeAberrationAlgo: 
 	def __init__(self):
 		pass
 		
