@@ -100,7 +100,7 @@ class NhejProcess:
 		# Program Model Parameters
 		##-----------------------------------------
 		self.currTime = 0.1 # in seconds
-		self.stopTime = 30./60 # in hours
+		self.stopTime = 20./60 # in hours
 		self.stopTime *= 3600 # in seconds
 		self.dt       = 0.5 # in seconds
 		self.D1       = 100*100 # in angstrom^2/s
@@ -109,14 +109,16 @@ class NhejProcess:
 		self.chromPos = chromPos
 		self.numDSB   = 0
 		self.stateList = []
+		self.stateDict = {k:[] for k in range(45)}
 		self.pairingStateList = []
 
 		self.numDSB   = len(self.data[:,0])
 		self.numPairingStates = 0.5 * 2 * self.numDSB * (2*self.numDSB-1)
 
 		self._InitializeDsbStates()
-		self._InitializePairingStates()
 		#self._remove_small_fragments()
+		self._InitializePairingStates()
+
 		logdata = LogData(totalDose,self.numDSB/2)
 
 		##----------------------------------------
@@ -169,12 +171,11 @@ class NhejProcess:
 					self.pairingStateList[-1].initialize(k,kk,self.stateList[k].startPosition,self.stateList[kk].startPosition,
 						self.stateList[k].chromosome_ID,self.stateList[kk].chromosome_ID)
 
-		# Check the pairing state List contains the correct number of elements
-		#if len(self.pairingStateList)!=self.numPairingStates:
-		#	raise Exception('Pairing State List construction errors...')
-
 		print('Number of Relevant Pairing States = %d ...' %len(self.pairingStateList))
 		self.numPairingStates = len(self.pairingStateList)
+
+	def _Remove_small_fragments(self):
+		pass
 
 	def _OneIteration(self):
 		# Update Rejoined Probability for Pairing states
@@ -325,7 +326,7 @@ class LogData:
 					tmp_sum += stateList[k].null
 					#tmp_sum += stateList[k].ku_XL
 					#tmp_sum += stateList[k].synapse
-			self.plotData.append((self.numDSB-tmp_sum)/self.dose)
+			self.plotData.append(tmp_sum/(k+1.))
 		elif option == 'multiple':
 			# only use this option if there are small number of DSB states
 			for k in range(len(self.multiplePlotData)):
@@ -374,7 +375,7 @@ class LogData:
 		data = Al_k_gamma().GetData_27Gy()
 		data = Ce_137_gamma().GetData_40Gy()
 		#plt.errorbar(data[:,0],data[:,1],yerr=data[:,2],label='Al_k')
-		plt.plot(data[:,0]*60,data[:,1],'ro',label='Ce-137')
+		plt.plot(data[:,0]*60,data[:,1]/30.,'ro',label='Ce-137')
 
 class ChromosomeAberrationAlgo:
 	def __init__(self):
