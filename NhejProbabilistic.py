@@ -100,11 +100,9 @@ class NhejProcess:
 		# Program Model Parameters
 		##-----------------------------------------
 		self.currTime = 0.1 # in seconds
-		self.stopTime = 20./60 # in hours
+		self.stopTime = 30./60 # in hours
 		self.stopTime *= 3600 # in seconds
 		self.dt       = 0.5 # in seconds
-		self.D1       = 100*100 # in angstrom^2/s
-		self.D2       = self.D1/10
 		self.data     = dsbMasterData
 		self.chromPos = chromPos
 		self.numDSB   = 0
@@ -119,7 +117,7 @@ class NhejProcess:
 		#self._remove_small_fragments()
 		self._InitializePairingStates()
 
-		logdata = LogData(totalDose,self.numDSB/2)
+		self.logdata = LogData(totalDose,self.numDSB/2)
 
 		##----------------------------------------
 		# Start Multiprocessing
@@ -131,17 +129,16 @@ class NhejProcess:
 		while(self.currTime < self.stopTime):
 			self.currTime += self.dt
 			self._OneIteration()
-			logdata.FillTime(self.currTime/60)
-			logdata.SaveRepairedState(self.stateList,self.plotOption,0)
+			self.logdata.FillTime(self.currTime/60)
+			self.logdata.SaveRepairedState(self.stateList,self.plotOption,0)
 			if FLAG_saveData:
 				timeInterval = 0
 				if self.currTime>timeInterval:
 					logdata.SaveSynapseRepairData(self.pairingStateList,self.currTime)
 					timeInterval += 0.5 # Save the rejoined data after every 0.5 seconds
-
 			print('Current Time = %.2f mins...' %(self.currTime/60))
 
-		logdata.ShowPlots()
+		#self.logdata.ShowPlots()
 
 	# Initialize DSBs in stateList. Each DSB gives rise to two states for the ends
 	def _InitializeDsbStates(self):
@@ -227,10 +224,10 @@ class NhejProcess:
 	def ComputeRejoinProbability(self,state):
 		# Use simple model for computing rejoin probability; Neglect boundary and centromere effect
 		if self.rejoinModelOption == 'simple':
-			spatial_prob = Calculate_spatial_prob(state,self.D1,self.currTime,self.chromPos,'simple').GetProbability()
+			spatial_prob = Calculate_spatial_prob(state,self.currTime,self.chromPos,'simple').GetProbability()
 		# take into account boundary effect of the chromosome (single);debug purpose
 		if self.rejoinModelOption == 'debug':
-			spatial_prob = Calculate_spatial_prob(state,self.D1,self.currTime,self.chromPos,'debug').GetProbability()
+			spatial_prob = Calculate_spatial_prob(state,self.currTime,self.chromPos,'debug').GetProbability()
 
 		state_prob   = 1
 		if NhejProcess.GetStateType(self.stateList[state.ID_1]) == 0:
@@ -255,6 +252,12 @@ class NhejProcess:
 			return True
 		else:
 			return False
+
+	def SaveOptimData(self,name):
+		data = np.array([self.logdata.plotData])
+		time = np.array([self.logdata.time])
+		saveData = np.append(time,data,axis=0)
+		np.savetxt(name,saveData)
 
 	@staticmethod
 	def GetStateType(state):
@@ -326,7 +329,7 @@ class LogData:
 					tmp_sum += stateList[k].null
 					#tmp_sum += stateList[k].ku_XL
 					#tmp_sum += stateList[k].synapse
-			self.plotData.append(tmp_sum/(k+1.))
+			self.plotData.append(1-tmp_sum/(k+1.))
 		elif option == 'multiple':
 			# only use this option if there are small number of DSB states
 			for k in range(len(self.multiplePlotData)):

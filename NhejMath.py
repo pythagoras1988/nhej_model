@@ -2,12 +2,16 @@ import numpy as np
 import scipy.special as sp
 
 class Calculate_spatial_prob:
-	def __init__(self,state,D,time,chromPosArr,option='full'): 
+	# Set Static variables
+	delta = 200 # in angstrom; distance for synapse formation
+	D     = 100*100 # in angstrom^2/s
+	def __init__(self,state,time,chromPosArr,option='full'): 
 		self.pos1 = state.pos1 
 		self.pos2 = state.pos2 
 		self.chromID1 = state.chrom_ID1 
 		self.chromID2 = state.chrom_ID2
-		self.D = D
+		#self.D1       = 100*100 # in angstrom^2/s
+		#self.D2       = self.D1/10
 		self.time = time
 		self.chromPosArr = chromPosArr
 		self.prob = 0
@@ -25,7 +29,6 @@ class Calculate_spatial_prob:
 		return self.prob
 
 	def _CalculateProb_Simple(self):
-		delta = 200 # in angstrom; distance for synapse formation
 		# determine global position
 		self.pos1 = self.pos1 - 7500
 		self.pos2 = self.pos2 - 7500
@@ -50,8 +53,8 @@ class Calculate_spatial_prob:
 				alpha1 = 1/(2*sigma1**2)
 				beta1  = 1/(np.sqrt(2)*sigma2)
 				#--------------------------------------------------------------------------------------------------------------
-				gamma1 = (self.pos1[k]-self.pos2[k]+delta)/(np.sqrt(2)*sigma2)
-				gamma2 = (self.pos1[k]-self.pos2[k]-delta)/(np.sqrt(2)*sigma2)
+				gamma1 = (self.pos1[k]-self.pos2[k]+self.delta)/(np.sqrt(2)*sigma2)
+				gamma2 = (self.pos1[k]-self.pos2[k]-self.delta)/(np.sqrt(2)*sigma2)
 				prob *= 1./2* (sp.erf(gamma1*np.sqrt(alpha1/(alpha1+beta1**2)))-sp.erf(gamma2*np.sqrt(alpha1/(alpha1+beta1**2))))
 			#print prob
 		else: 

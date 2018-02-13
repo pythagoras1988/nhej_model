@@ -20,6 +20,7 @@ from process_damage import ProcessDamage
 from classify_damage import ClassifyDamage
 from NhejProbabilistic import NhejProcess
 from SampleChromosomePosition import SampleChromosomePosition
+from Optimizer_Engine import OptimizerWrapper
 
 global debug
 debug = False
@@ -117,4 +118,8 @@ if __name__=='__main__':
 	print('Total Number of DSBs = %d' %(len(dsbMasterData[:,0])))
 	print('Simple DSB = %d, Complex DSB = %d' %(numSimpleBreaks,numComplexBreaks))
 	time.sleep(3)
-	nhejPtr = NhejProcess(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile(),totalDose)
+
+	if False:
+		NhejProcess(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile(),totalDose)
+	else:
+		OptimizerWrapper(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile(),totalDose)

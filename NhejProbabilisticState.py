@@ -6,8 +6,9 @@ class SimpleDsbState:
 	# Simple DSB end ---(rate_1)---> Binding of Ku and XL ---(diffusion)---> Synapsis Formation
 	# ---(rate_2)---> ku release ---(rate_3)---> XL released (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
+    # rate constant list as class static variable
+    rateConstant = [1.,2.5155/60, 0.02/60] #in per second
     def __init__(self):
-        self.rateConstant = [1.,2.5155/60, 0.02/60] #in per second
         self.simpleDSB = 0
         self.ku_XL     = 0
         self.synapse   = 0
@@ -53,8 +54,9 @@ class ComplexDsbState:
 	# Complex DSB end ---(rate_1)---> Binding of Ku,DNA-Pkcs,Artemis ---(diffusion)---> Synapsis Formation
 	# ---(rate_2)---> artemis processing ---(rate_3)---> ku_DNA-PKcs_XL ---(rate_4)---> XL ---(rate_5)---> (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
+    # Rate constant as class static variable
+    rateConstant = [1.,4.2257/60,4.5/60,2.7559/60, 0.02/60] # in seconds
     def __init__(self):
-        self.rateConstant = [1.,4.2257/60,4.5/60,2.7559/60, 0.02/60] # in seconds
         self.complexDSB = 0
         self.ku_PKcs_artemis = 0
         self.synapse     = 0
@@ -90,6 +92,12 @@ class ComplexDsbState:
         self.ku_PKcs_XL += tmpVector[3]*self.rateConstant[2]*dt - tmpVector[4]*self.rateConstant[3]*dt
         self.XL += tmpVector[4]*self.rateConstant[3]*dt - tmpVector[5]*self.rateConstant[4]*dt
     	self.null += tmpVector[5]*self.rateConstant[4]*dt
+
+    def SetRateConstant(self,rateConstant): 
+        if not isinstance(rateConstant,list) or len(rateConstant)!=5:
+            raise Exception('Wrong Inputs during optimization')
+        else:
+            self.rateConstant = rateConstant
 
     def stateCheck(self):
     	# Probability should sum up to 1
