@@ -100,7 +100,7 @@ class NhejProcess:
 		# Program Model Parameters
 		##-----------------------------------------
 		self.currTime = 0.1 # in seconds
-		self.stopTime = 30./60 # in hours
+		self.stopTime = 150./60 # in hours
 		self.stopTime *= 3600 # in seconds
 		self.dt       = 0.5 # in seconds
 		self.data     = dsbMasterData

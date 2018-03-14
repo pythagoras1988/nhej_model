@@ -93,7 +93,7 @@ class ComplexDsbState:
         self.XL += tmpVector[4]*self.rateConstant[3]*dt - tmpVector[5]*self.rateConstant[4]*dt
     	self.null += tmpVector[5]*self.rateConstant[4]*dt
 
-    def SetRateConstant(self,rateConstant): 
+    def SetRateConstant(self,rateConstant):
         if not isinstance(rateConstant,list) or len(rateConstant)!=5:
             raise Exception('Wrong Inputs during optimization')
         else:

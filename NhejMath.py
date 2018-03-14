@@ -1,14 +1,14 @@
-import numpy as np 
+import numpy as np
 import scipy.special as sp
 
 class Calculate_spatial_prob:
 	# Set Static variables
 	delta = 200 # in angstrom; distance for synapse formation
 	D     = 100*100 # in angstrom^2/s
-	def __init__(self,state,time,chromPosArr,option='full'): 
-		self.pos1 = state.pos1 
-		self.pos2 = state.pos2 
-		self.chromID1 = state.chrom_ID1 
+	def __init__(self,state,time,chromPosArr,option='full'):
+		self.pos1 = state.pos1
+		self.pos2 = state.pos2
+		self.chromID1 = state.chrom_ID1
 		self.chromID2 = state.chrom_ID2
 		#self.D1       = 100*100 # in angstrom^2/s
 		#self.D2       = self.D1/10
@@ -18,14 +18,14 @@ class Calculate_spatial_prob:
 		self.lowBound = 0
 		self.upBound  = 0
 
-		if option == 'debug': 
+		if option == 'debug':
 			self.prob = self._CalculateProb_Debug()
-		elif option == 'simple': 
+		elif option == 'simple':
 			self.prob = self._CalculateProb_Simple()
-		else: 
+		else:
 			self.prob = self._CalculateProb()
 
-	def GetProbability(self): 
+	def GetProbability(self):
 		return self.prob
 
 	def _CalculateProb_Simple(self):
@@ -46,7 +46,7 @@ class Calculate_spatial_prob:
 				#--------------------------------------------------------------------------------------------------------------
 				sigma1 = np.sqrt(2*self.D*self.time)
 				sigma2 = sigma1
-				if sigma1>minDist1[k]: 
+				if sigma1>minDist1[k]:
 					sigma1 = minDist1[k]
 				if sigma2>minDist2[k]:
 					sigma2 = minDist2[k]
@@ -57,12 +57,12 @@ class Calculate_spatial_prob:
 				gamma2 = (self.pos1[k]-self.pos2[k]-self.delta)/(np.sqrt(2)*sigma2)
 				prob *= 1./2* (sp.erf(gamma1*np.sqrt(alpha1/(alpha1+beta1**2)))-sp.erf(gamma2*np.sqrt(alpha1/(alpha1+beta1**2))))
 			#print prob
-		else: 
-			prob = 0. 
-		return prob 
+		else:
+			prob = 0.
+		return prob
 
 
-	def _CalculateProb_Debug(self): 
+	def _CalculateProb_Debug(self):
 		centre = np.array([0,0,0]) # for 1 chromosome scenario
 		self.pos1 = self.pos1 - 7500
 		self.pos2 = self.pos2 - 7500
@@ -70,19 +70,19 @@ class Calculate_spatial_prob:
 		halfLength *= 10**4 # in angstrom
 		prob = 1
 
-		# Calculate the probability of intersection for x,y and z 
-		for k in range(3): 
-			self.lowBound = centre[k] - halfLength 
+		# Calculate the probability of intersection for x,y and z
+		for k in range(3):
+			self.lowBound = centre[k] - halfLength
 			self.upBound  = centre[k] + halfLength
 			prob *= self._ProdGaussian(self.pos1[k],self.pos2[k]) + self._ProdGaussian(self.pos1[k],2*halfLength - self.pos2[k]) \
 			+ self._ProdGaussian(self.pos1[k],-2*halfLength - self.pos2[k]) + self._ProdGaussian(2*halfLength - self.pos1[k],self.pos2[k]) \
 			+ self._ProdGaussian(2*halfLength - self.pos1[k], 2*halfLength - self.pos2[k]) + self._ProdGaussian(2*halfLength - self.pos1[k],-2*halfLength - self.pos2[k]) \
 			+ self._ProdGaussian(-2*halfLength - self.pos1[k],self.pos2[k]) + self._ProdGaussian(-2*halfLength - self.pos1[k],2*halfLength - self.pos2[k]) \
 			+ self._ProdGaussian(-2*halfLength - self.pos1[k],-2*halfLength - self.pos2[k])
-			prob *= 2 * 250 * (4/3*np.pi)**(1/3)	
+			prob *= 2 * 250 * (4/3*np.pi)**(1/3)
 		return prob
 
-	def _CalculateProb(self): 
+	def _CalculateProb(self):
 		pass
 
 	#calculate the integral of product of gaussian based on the mean position, B1 and B2
