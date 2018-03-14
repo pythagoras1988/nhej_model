@@ -15,7 +15,7 @@ class OptimizerWrapper:
 		self.ParamList = np.array([4.5,30.0,60.,90.])/60
 
 		for k in range(self.numTrials):
-			fname = 'Nhej_Repair_Outfiles/InitialBindingConstant' + str(k) + '.txt'
+			fname = 'Nhej_Repair_Outfiles/DiffusionConstant' + str(k) + '.txt'
 			#self._ChangeDiffusionConstant(k)
 			self._ChangeRateConstSimple(k)
 			self._ChangeRateConstComplex(k)

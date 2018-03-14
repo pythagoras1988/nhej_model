@@ -2,6 +2,7 @@ import numpy as np
 import os
 import math
 import time
+import operator
 import matplotlib.pyplot as plt
 import scipy.special as sp
 from multiprocessing import Pool
@@ -172,7 +173,28 @@ class NhejProcess:
 		self.numPairingStates = len(self.pairingStateList)
 
 	def _Remove_small_fragments(self):
-		pass
+		threshold = 25 #basepairs
+		# Create empty dictionary;
+		# The key is the chromosome number and value is the list of DSB end class
+		chromosomeDict = {x:[] for x in range(46)}
+		# sort state into chromosome Dictionary
+		for state in self.stateList:
+			chromosomeDict[state.chromosome_ID].append(state)
+		# determine state to be deleted; state to be deleted has ID set to -1
+		numRemoval = 0
+		for k in range(46):
+			tempList = sorted(chromosomeDict[k],key=operator.attrgetter('genomic_ID'))
+			for kk in range(len(tempList)-1):
+				basepair_distance = tempList[kk+1].genomic_ID-tempList[kk].genomic_ID
+				assert basepair_distance>=0
+				if basepair_distance!=0 and basepair_distance<threshold:
+					tempList[kk].ID = -1
+					tempList[kk+1].ID = -1
+					numRemoval += 2
+		# Remove the state from stateList
+		print('Number of DSB end states to be removed due to small fragments = %d ...' %numRemoval)
+		self.stateList = [state for state in self.stateList if state.ID!=-1]
+		self.numDSB = len(self.stateList)
 
 	def _OneIteration(self):
 		# Update Rejoined Probability for Pairing states

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 class AnalyzeData:
     def __init__(self):
-        self.dirName ='Nhej_Repair_Outfiles/InitialBindingConstant'
-        self.numFiles =1
+        self.dirName ='Nhej_Repair_Outfiles/DeltaConstant'
+        self.numFiles =3
         self._PlotSimulationData()
         self._PlotData()
 
@@ -19,7 +19,7 @@ class AnalyzeData:
         data = Ce_137_gamma().GetData_40Gy()
         plt.plot(data[:,0]*60,data[:,1]/30.,'ro',label='Ce-137')
         plt.xlabel('Time/mins')
-        plt.xlim(0,10)
+        plt.xlim(0,90)
         plt.ylabel('Probability')
         plt.legend()
         plt.show()
