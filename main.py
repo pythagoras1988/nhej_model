@@ -119,7 +119,7 @@ if __name__=='__main__':
 	print('Simple DSB = %d, Complex DSB = %d' %(numSimpleBreaks,numComplexBreaks))
 	time.sleep(3)
 
-	if False:
+	if True:
 		NhejProcess(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile(),totalDose)
 	else:
 		OptimizerWrapper(dsbMasterData,SampleChromosomePosition.ReadChromosomeAsciiFile(),totalDose)
