@@ -4,14 +4,15 @@ import matplotlib.pyplot as plt
 
 class AnalyzeData:
     def __init__(self):
-        self.dirName ='Nhej_Repair_Outfiles/DiffusionConstant'
-        self.numFiles =3
+        self.dirName ='Nhej_Repair_Outfiles/ParameterTest_'
+        self.numFiles =1
         self._PlotSimulationData()
         self._PlotData()
 
     def _PlotSimulationData(self):
         for k in range(self.numFiles):
             fname = self.dirName + str(k) + '.txt'
+            fname = self.dirName + str(1) + '.txt'
             data = np.loadtxt(fname)
             plt.plot(data[0,:],data[1,:],c=np.random.rand(3,1),label = str(k))
 
@@ -19,7 +20,7 @@ class AnalyzeData:
         data = Ce_137_gamma().GetData_40Gy()
         plt.plot(data[:,0]*60,data[:,1]/30.,'ro',label='Ce-137')
         plt.xlabel('Time/mins')
-        plt.xlim(0,150)
+        plt.xlim(0,240)
         plt.ylabel('Probability')
         plt.legend()
         plt.show()

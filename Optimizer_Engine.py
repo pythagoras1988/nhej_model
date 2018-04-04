@@ -7,7 +7,7 @@ from NhejMath import Calculate_spatial_prob
 
 class OptimizerWrapper:
 	def __init__(self,*argTuple):
-		self.numTrials = 3
+		self.numTrials = 1
 		#self.ParamList = np.array([10000])
 		self.ParamList = np.linspace(1000,10000,self.numTrials)
 		#self.ParamList = np.linspace(0.02,0.1,5)/60 # For XL data
@@ -15,8 +15,9 @@ class OptimizerWrapper:
 	#	self.ParamList = np.array([4.5,30.0,60.,90.])/60
 
 		for k in range(self.numTrials):
-			fname = 'Nhej_Repair_Outfiles/DiffusionConstant' + str(k) + '.txt'
-			self._ChangeDiffusionConstant(k)
+			fname = 'Nhej_Repair_Outfiles/ParameterTest_' + str(k) + '.txt'
+			fname = 'Nhej_Repair_Outfiles/ParameterTest_2.txt'
+			#self._ChangeDiffusionConstant(k)
 			#self._ChangeRateConstSimple(k)
 			#self._ChangeRateConstComplex(k)
 			#self._ChangeDeltaConstant(k)

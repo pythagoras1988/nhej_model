@@ -131,7 +131,7 @@ class NhejProcess:
 			self.currTime += self.dt
 			self._OneIteration()
 			self.logdata.FillTime(self.currTime/60)
-			self.logdata.SaveRepairedState(self.stateList,self.plotOption,0)
+			self.logdata.RegisterRepairedState(self.stateList,self.plotOption,0)
 			if FLAG_saveData:
 				timeInterval = 0
 				if self.currTime>timeInterval:
@@ -316,7 +316,7 @@ class LogData:
 	def FillTime(self,time):
 		self.time.append(time)
 
-	def SaveRepairedState(self,stateList,option,ID=0):
+	def RegisterRepairedState(self,stateList,option,ID=0):
 		self.option = option
 		if option == 'single':
 			if NhejProcess.GetStateType(stateList[ID]):

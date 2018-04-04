@@ -4,7 +4,7 @@ import scipy.special as sp
 class Calculate_spatial_prob:
 	# Set Static variables
 	delta = 200 # in angstrom; distance for synapse formation
-	D     = 100*100 # in angstrom^2/s
+	D     = 10000 #100*100 # in angstrom^2/s
 	def __init__(self,state,time,chromPosArr,option='full'):
 		self.pos1 = state.pos1
 		self.pos2 = state.pos2
