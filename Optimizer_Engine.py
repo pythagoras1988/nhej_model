@@ -16,7 +16,7 @@ class OptimizerWrapper:
 
 		for k in range(self.numTrials):
 			fname = 'Nhej_Repair_Outfiles/ParameterTest_' + str(k) + '.txt'
-			fname = 'Nhej_Repair_Outfiles/ParameterTest_2.txt'
+			fname = 'Nhej_Repair_Outfiles/ParameterTest_4.txt'
 			#self._ChangeDiffusionConstant(k)
 			#self._ChangeRateConstSimple(k)
 			#self._ChangeRateConstComplex(k)
