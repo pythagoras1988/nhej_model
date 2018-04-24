@@ -7,7 +7,7 @@ class SimpleDsbState:
 	# ---(rate_2)---> ku release ---(rate_3)---> XL released (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     # rate constant list as class static variable
-    rateConstant = [1.,2.5155/60, 0.05/60] #in per second
+    rateConstant = [0.5,2.5155/60, 0.05/60] #in per second
     def __init__(self):
         self.simpleDSB = 0
         self.ku_XL     = 0
@@ -55,7 +55,7 @@ class ComplexDsbState:
 	# ---(rate_2)---> artemis processing ---(rate_3)---> ku_DNA-PKcs_XL ---(rate_4)---> XL ---(rate_5)---> (rejoined or null state)
 	#------------------------------------------------------------------------------------------------
     # Rate constant as class static variable
-    rateConstant = [1.,4.2257/60,4.5/60,2.7559/60, 0.05/60] # in seconds
+    rateConstant = [0.5,4.2257/60,4.5/60,2.7559/60, 0.05/60] # in seconds
     def __init__(self):
         self.complexDSB = 0
         self.ku_PKcs_artemis = 0
