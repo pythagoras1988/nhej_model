@@ -12,7 +12,7 @@ class AnalyzeData:
     def _PlotSimulationData(self):
         for k in range(self.numFiles):
             fname = self.dirName + str(k) + '.txt'
-            fname = self.dirName + str(7) + '.txt'
+            fname = self.dirName + str(8) + '.txt'
             data = np.loadtxt(fname)
             plt.plot(data[0,:],data[1,:],c=np.random.rand(3,1),label = str(k))
 
